@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/SplashScreen.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const Register(),
+      home: const SplashScreen(),
     );
   }
 }

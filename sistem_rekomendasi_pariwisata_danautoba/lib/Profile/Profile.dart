@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Profile extends StatefulWidget {
@@ -11,9 +12,29 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  void _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Hapus semua data yang terkait dengan status login
+    await prefs.remove('username');
+    await prefs.remove('email');
+    await prefs.remove('phone');
+    await prefs.remove('profilephoto');
+
+    prefs.setBool("login", false);
+    print(prefs.get("login"));
+
+    // Navigasi kembali ke halaman login atau halaman splash screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -113,7 +134,7 @@ class _ProfileState extends State<Profile> {
                 ),
                 trailing: const Icon(Icons.arrow_forward, color: Colors.red),
                 onTap: () {
-                  // Handle logout
+                  _logout();
                 },
               ),
             ],

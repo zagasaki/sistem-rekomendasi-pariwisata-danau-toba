@@ -1,10 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:ffi';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
@@ -22,10 +25,10 @@ class _RegisterState extends State<Register> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
-
   bool isRegistering = false;
 
   Future<String?> _register() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       isRegistering = true;
     });
@@ -56,12 +59,28 @@ class _RegisterState extends State<Register> {
 
       DocumentSnapshot userSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      Map<String, dynamic> userData =
+          userSnapshot.data() as Map<String, dynamic>;
+
       setState(() {
         userData = userSnapshot.data() as Map<String, dynamic>;
       });
 
-      context.read<UserProvider>().updateUserData(userData['username'],
-          userData['email'], userData['phone'], userData['profilephoto']);
+      await prefs.setString('uid', uid);
+      await prefs.setString('username', userData['username']);
+      await prefs.setString('email', userData['email']);
+      await prefs.setString('phone', userData['phone']);
+      // Mengatasi profilephoto yang mungkin null dengan nilai default
+      String profilePhoto = userData['profilephoto'] ?? "";
+      await prefs.setString('profilephoto', profilePhoto);
+
+      // Memperbarui data pengguna di UserProvider
+      context.read<UserProvider>().updateUserData(
+            userData['username'],
+            userData['email'],
+            userData['phone'],
+            profilePhoto, // Menggunakan profilePhoto yang telah ditangani
+          );
 
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const MainPage()));
@@ -74,8 +93,9 @@ class _RegisterState extends State<Register> {
       setState(() {
         isRegistering = false;
       });
+      await prefs.setBool('login', true);
     }
-
+    print(prefs.get("login"));
     return null;
   }
 

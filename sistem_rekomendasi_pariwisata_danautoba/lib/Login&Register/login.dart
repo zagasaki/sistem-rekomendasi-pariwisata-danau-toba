@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart'; // Sesuaikan path-nya
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
@@ -20,18 +21,14 @@ class _LoginState extends State<Login> {
   late Map<String, dynamic> userData = {};
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool isLoggingIn = false;
 
   Future<void> _login() async {
-    setState(() {
-      isLoggingIn = true;
-    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    final email = _emailController.text;
+    final password = _passwordController.text;
 
     try {
-      FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-      final email = _emailController.text;
-      final password = _passwordController.text;
-
       UserCredential userCredential =
           await firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -43,12 +40,17 @@ class _LoginState extends State<Login> {
 
       DocumentSnapshot userSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      setState(() {
-        userData = userSnapshot.data() as Map<String, dynamic>;
-      });
 
-      context.read<UserProvider>().updateUserData(userData['username'],
-          userData['email'], userData['phone'], userData['profilephoto']);
+      // Simpan data pengguna di shared preferences
+      Map<String, dynamic> userData =
+          userSnapshot.data() as Map<String, dynamic>;
+      await prefs.setString('uid', uid);
+      await prefs.setString('username', userData['username']);
+      await prefs.setString('email', userData['email']);
+      await prefs.setString('phone', userData['phone']);
+      // Mengatasi profilephoto yang mungkin null dengan nilai default
+      String profilePhoto = userData['profilephoto'] ?? "";
+      await prefs.setString('profilephoto', profilePhoto);
 
       Navigator.pushReplacement(
         context,
@@ -63,16 +65,15 @@ class _LoginState extends State<Login> {
       );
     } on FirebaseAuthException catch (error) {
       Fluttertoast.showToast(
-        msg: error.message ?? "An Error occurred",
+        msg: error.message ?? "Terjadi kesalahan saat login",
         gravity: ToastGravity.TOP,
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     } finally {
-      setState(() {
-        isLoggingIn = false;
-      });
+      await prefs.setBool('login', true);
     }
+    print(prefs.get("login"));
   }
 
   @override

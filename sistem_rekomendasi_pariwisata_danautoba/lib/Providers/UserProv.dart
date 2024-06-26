@@ -5,8 +5,8 @@ class UserProvider extends ChangeNotifier {
   String email = "";
   String phone = "";
   String? profilephoto;
-
   String? _uid;
+
   String? get uid => _uid;
 
   void setUid(String? uid) {

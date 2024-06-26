@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/Hotel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,6 +66,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.read<UserProvider>();
     final screenSize = MediaQuery.of(context).size;
     final double containerHeight = screenSize.height * 0.35;
     final double iconSize = screenSize.width * 0.06;
@@ -90,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     Text(
-                      "Hai, Bintang Mas Cahya Sinaga",
+                      ("hai, ${user.username}"),
                       style: TextStyle(color: Colors.white, fontSize: fontSize),
                     ),
                     Text(
