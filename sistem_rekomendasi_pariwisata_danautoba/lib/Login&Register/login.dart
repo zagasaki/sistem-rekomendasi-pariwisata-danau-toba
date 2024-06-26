@@ -1,11 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/UserModel.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart'; // Sesuaikan path-nya
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -15,70 +17,61 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final _formKey = GlobalKey<FormState>();
+  late Map<String, dynamic> userData = {};
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool isLoggingIn = false;
 
-  String? emailError;
-  String? passwordError;
-
-  Future<void> _login(BuildContext context) async {
+  Future<void> _login() async {
     setState(() {
-      emailError = null;
-      passwordError = null;
+      isLoggingIn = true;
     });
 
-    if (_formKey.currentState!.validate()) {
-      try {
-        UserCredential userCredential =
-            await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+    try {
+      FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+      final email = _emailController.text;
+      final password = _passwordController.text;
 
-        // Ambil data pengguna dari Firestore
-        DocumentSnapshot<Map<String, dynamic>> snapshot =
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userCredential.user!.uid)
-                .get();
+      UserCredential userCredential =
+          await firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-        if (snapshot.exists) {
-          // Buat objek UserModel dari data Firestore
-          UserModel user = UserModel.fromMap(snapshot.data()!);
+      String uid = userCredential.user?.uid ?? "";
+      context.read<UserProvider>().setUid(uid);
 
-          // Simpan data pengguna di UserProvider
-          Provider.of<UserProvider>(context, listen: false).setUser(user);
+      DocumentSnapshot userSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      setState(() {
+        userData = userSnapshot.data() as Map<String, dynamic>;
+      });
 
-          // Navigasi ke halaman utama setelah login berhasil
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainPage()),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Data pengguna tidak ditemukan')));
-        }
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-          // Handle jika email atau password salah
-          setState(() {
-            if (e.code == 'user-not-found') {
-              emailError = 'Email tidak terdaftar';
-            } else {
-              passwordError = 'Password salah';
-            }
-          });
-        } else {
-          // Handle kesalahan lainnya
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(e.message!)));
-        }
-      } catch (e) {
-        // Tangani kesalahan lainnya
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Terjadi kesalahan")));
-      }
+      context.read<UserProvider>().updateUserData(userData['username'],
+          userData['email'], userData['phone'], userData['profilephoto']);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
+
+      Fluttertoast.showToast(
+        msg: 'Login berhasil',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+    } on FirebaseAuthException catch (error) {
+      Fluttertoast.showToast(
+        msg: error.message ?? "An Error occurred",
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isLoggingIn = false;
+      });
     }
   }
 
@@ -96,7 +89,6 @@ class _LoginState extends State<Login> {
           ),
           padding: const EdgeInsets.all(20),
           child: Form(
-            key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -133,7 +125,6 @@ class _LoginState extends State<Login> {
                             filled: true,
                             fillColor: Colors.grey.withOpacity(0.5),
                             hintText: "Email",
-                            errorText: emailError,
                             border: const OutlineInputBorder(
                               borderSide: BorderSide.none,
                               borderRadius:
@@ -167,7 +158,6 @@ class _LoginState extends State<Login> {
                             filled: true,
                             fillColor: Colors.grey.withOpacity(0.5),
                             hintText: "Minimal 8 Karakter",
-                            errorText: passwordError,
                             border: const OutlineInputBorder(
                               borderSide: BorderSide.none,
                               borderRadius:
@@ -187,7 +177,7 @@ class _LoginState extends State<Login> {
                       const SizedBox(height: 20),
                       // TOMBOL LOGIN
                       ElevatedButton(
-                        onPressed: () => _login(context),
+                        onPressed: _login,
                         child: const Text("Login"),
                       ),
                     ],

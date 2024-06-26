@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/HomePage.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/HomePage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Profile/Profile.dart';
 
 class NavBarProv extends ChangeNotifier {

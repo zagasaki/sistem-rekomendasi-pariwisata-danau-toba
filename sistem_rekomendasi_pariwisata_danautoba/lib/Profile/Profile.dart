@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -10,36 +13,38 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 50,
                 backgroundImage: NetworkImage(
-                  'https://example.com/profile.jpg', // Replace with actual image URL
+                  user.profilephoto ??
+                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAd5avdba8EiOZH8lmV3XshrXx7dKRZvhx-A&s', // Replace with actual image URL
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'WILLY PIETER JULIUS SITUMORANG',
-                style: TextStyle(
+              Text(
+                user.username,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                '081266088224',
-                style: TextStyle(
+              Text(
+                user.phone,
+                style: const TextStyle(
                   fontSize: 16,
                 ),
               ),
-              const Text(
-                'willypieter8@gmail.com',
-                style: TextStyle(
+              Text(
+                user.email,
+                style: const TextStyle(
                   fontSize: 16,
                 ),
               ),

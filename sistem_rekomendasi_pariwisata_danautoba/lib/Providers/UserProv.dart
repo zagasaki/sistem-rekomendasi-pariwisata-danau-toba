@@ -1,18 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/UserModel.dart';
 
-class UserProvider with ChangeNotifier {
-  UserModel? _user;
+class UserProvider extends ChangeNotifier {
+  String username = "";
+  String email = "";
+  String phone = "";
+  String? profilephoto;
 
-  UserModel? get user => _user;
+  String? _uid;
+  String? get uid => _uid;
 
-  void setUser(UserModel user) {
-    _user = user;
+  void setUid(String? uid) {
+    _uid = uid;
     notifyListeners();
   }
 
-  void clearUser() {
-    _user = null;
+  void updateProfilePhoto(String? newProfilePhoto) {
+    profilephoto = newProfilePhoto;
     notifyListeners();
   }
+
+  void updateUserData(String newUsername, String newEmail, String newPhone,
+      String? newProfilePhoto) {
+    username = newUsername;
+    email = newEmail;
+    phone = newPhone;
+    profilephoto = newProfilePhoto;
+    notifyListeners();
+  }
+
+  void initialize() {}
 }
