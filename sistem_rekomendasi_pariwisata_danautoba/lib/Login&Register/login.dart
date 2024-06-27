@@ -37,20 +37,20 @@ class _LoginState extends State<Login> {
 
       String uid = userCredential.user?.uid ?? "";
       context.read<UserProvider>().setUid(uid);
+      await prefs.setString("uid", uid);
 
       DocumentSnapshot userSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
-      // Simpan data pengguna di shared preferences
       Map<String, dynamic> userData =
           userSnapshot.data() as Map<String, dynamic>;
-      await prefs.setString('uid', uid);
-      await prefs.setString('username', userData['username']);
-      await prefs.setString('email', userData['email']);
-      await prefs.setString('phone', userData['phone']);
-      // Mengatasi profilephoto yang mungkin null dengan nilai default
-      String profilePhoto = userData['profilephoto'] ?? "";
-      await prefs.setString('profilephoto', profilePhoto);
+
+      context.read<UserProvider>().updateUserData(
+            userData["username"],
+            userData["email"],
+            userData["phone"],
+            userData["profilephoto"],
+          );
 
       Navigator.pushReplacement(
         context,

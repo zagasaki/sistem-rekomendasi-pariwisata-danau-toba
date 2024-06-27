@@ -16,10 +16,7 @@ class _ProfileState extends State<Profile> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // Hapus semua data yang terkait dengan status login
-    await prefs.remove('username');
-    await prefs.remove('email');
-    await prefs.remove('phone');
-    await prefs.remove('profilephoto');
+    await prefs.remove('uid');
 
     prefs.setBool("login", false);
     print(prefs.get("login"));
