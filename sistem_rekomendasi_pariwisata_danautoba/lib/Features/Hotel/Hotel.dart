@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelDetail.dart';
 import 'HotelModel.dart';
 
 class HotelScreen extends StatefulWidget {
@@ -18,28 +18,19 @@ class _HotelScreenState extends State<HotelScreen> {
   @override
   void initState() {
     super.initState();
-    fetchHotels();
+    readData();
   }
 
-  Future<void> fetchHotels() async {
-    try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('hotels').get();
-      setState(() {
-        hotels = snapshot.docs.map((doc) {
-          return Hotel(
-            name: doc['name'],
-            imageUrl: doc['imageUrl'],
-            price: doc['price'],
-          );
-        }).toList();
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-    }
+  Future readData() async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    var data = await db.collection('hotels').get();
+    setState(() {
+      hotels = data.docs.map((doc) => Hotel.fromDocSnapshot(doc)).toList();
+    });
+    setState(() {
+      isLoading = false;
+    });
+    print("ini adalah data${(data)}");
   }
 
   @override
@@ -62,56 +53,65 @@ class _HotelScreenState extends State<HotelScreen> {
                 itemCount: hotels.length,
                 itemBuilder: (context, index) {
                   final hotel = hotels[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(10)),
-                          child: Image.network(
-                            hotel.imageUrl,
-                            height: 150,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
+                  return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    HotelDetailPage(hotel: hotel)));
+                      },
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            hotel.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(10)),
+                              child: Image.network(
+                                hotel.imageUrl,
+                                height: 150,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            'Rp. ${hotel.price.toStringAsFixed(0)} / night',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                hotel.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
-                          ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                'Rp. ${hotel.price.toStringAsFixed(0)} / night',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(Icons.favorite_border),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const Spacer(),
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Icon(Icons.favorite_border),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                      ));
                 },
               ),
             ),

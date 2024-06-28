@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Profile extends StatefulWidget {
@@ -17,6 +18,7 @@ class _ProfileState extends State<Profile> {
 
     // Hapus semua data yang terkait dengan status login
     await prefs.remove('uid');
+    context.read<NavBarProv>().logout();
 
     prefs.setBool("login", false);
     print(prefs.get("login"));
@@ -24,7 +26,9 @@ class _ProfileState extends State<Profile> {
     // Navigasi kembali ke halaman login atau halaman splash screen
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const Login()),
+      MaterialPageRoute(
+        builder: (context) => const Login(),
+      ),
     );
   }
 

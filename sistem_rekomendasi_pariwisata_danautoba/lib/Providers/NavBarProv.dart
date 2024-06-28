@@ -21,4 +21,8 @@ class NavBarProv extends ChangeNotifier {
     _body = newBody;
     notifyListeners();
   }
+
+  Future<void> logout() async {
+    currentIndex = 0;
+  }
 }

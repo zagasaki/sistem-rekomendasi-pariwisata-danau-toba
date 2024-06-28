@@ -36,25 +36,32 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Add a delay to keep the SplashScreen displayed during the animation
     Future.delayed(const Duration(seconds: 4), () {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        // Check if the widget is still mounted
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
-    _checkLoginStatus();
+
+    // Move _checkLoginStatus call inside the delay
+    Future.delayed(const Duration(seconds: 6), () {
+      _checkLoginStatus();
+    });
   }
 
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _isLoggedIn = prefs.getBool('login') ?? false;
 
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (_isLoggedIn) {
+    if (_isLoggedIn && mounted) {
+      // Check if the widget is still mounted
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainPage()),
       );
-    } else {
+    } else if (mounted) {
+      // Check if the widget is still mounted
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const Login()),
@@ -82,17 +89,18 @@ class _SplashScreenState extends State<SplashScreen>
             child: _isLoading
                 ? FadeTransition(
                     opacity: _fadeAnimation,
-                    child: const CircularProgressIndicator(),
-                  )
-                : FadeTransition(
-                    opacity: _fadeAnimation,
                     child: const Text(
                       'Welcome!',
                       style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
+                  )
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const CircularProgressIndicator(),
                   ),
           ),
         ],

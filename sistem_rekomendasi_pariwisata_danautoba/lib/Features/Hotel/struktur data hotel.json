@@ -1,0 +1,109 @@
+{
+    "hotel": {
+        "id": "HTL123456",
+        "name": "Hotel Mewah",
+        "address": {
+            "street": "Jalan Kemewahan No. 123",
+            "city": "Jakarta",
+            "state": "DKI Jakarta",
+            "zip_code": "12345",
+            "country": "Indonesia"
+        },
+        "contact": {
+            "phone": "+62-21-12345678",
+            "email": "info@hotelmewah.com",
+            "website": "www.hotelmewah.com"
+        },
+        "rating": 4.5,
+        "facilities": [
+            "Kolam Renang",
+            "Spa",
+            "Pusat Kebugaran",
+            "Restoran",
+            "Bar",
+            "Wi-Fi Gratis",
+            "Parkir"
+        ],
+        "rooms": [
+            {
+                "room_id": "RM101",
+                "type": "Deluxe",
+                "price_per_night": 1500000,
+                "amenities": [
+                    "AC",
+                    "Televisi",
+                    "Mini Bar",
+                    "Wi-Fi Gratis",
+                    "Kamar Mandi Pribadi"
+                ],
+                "availability": true
+            },
+            {
+                "room_id": "RM102",
+                "type": "Suite",
+                "price_per_night": 2500000,
+                "amenities": [
+                    "AC",
+                    "Televisi",
+                    "Mini Bar",
+                    "Wi-Fi Gratis",
+                    "Kamar Mandi Pribadi",
+                    "Ruang Tamu"
+                ],
+                "availability": false
+            }
+        ],
+        "bookings": [
+            {
+                "booking_id": "BK20230627-001",
+                "customer": {
+                    "customer_id": "CUST12345",
+                    "name": "John Doe",
+                    "phone": "+62-81234567890",
+                    "email": "john.doe@example.com"
+                },
+                "room_id": "RM101",
+                "check_in": "2024-07-01",
+                "check_out": "2024-07-05",
+                "total_price": 6000000,
+                "status": "Confirmed"
+            }
+        ],
+        "staff": [
+            {
+                "staff_id": "ST001",
+                "name": "Alice",
+                "position": "Manager",
+                "contact": {
+                    "phone": "+62-81234567890",
+                    "email": "alice@hotelmewah.com"
+                }
+            },
+            {
+                "staff_id": "ST002",
+                "name": "Bob",
+                "position": "Resepsionis",
+                "contact": {
+                    "phone": "+62-81234567891",
+                    "email": "bob@hotelmewah.com"
+                }
+            }
+        ],
+        "reviews": [
+            {
+                "review_id": "REV20230627-001",
+                "customer_id": "CUST12345",
+                "rating": 5,
+                "comment": "Pelayanan sangat baik dan fasilitas lengkap.",
+                "date": "2024-06-27"
+            },
+            {
+                "review_id": "REV20230627-002",
+                "customer_id": "CUST12346",
+                "rating": 4,
+                "comment": "Kamar bersih dan nyaman, tapi sarapan bisa lebih baik.",
+                "date": "2024-06-26"
+            }
+        ]
+    }
+}

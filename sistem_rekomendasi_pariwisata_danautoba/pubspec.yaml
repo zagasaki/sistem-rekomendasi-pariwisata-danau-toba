@@ -41,6 +41,8 @@ dependencies:
   cloud_firestore: ^5.0.1
   fluttertoast: ^8.2.6
   shared_preferences: ^2.2.3
+  carousel_slider: ^4.2.1
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
