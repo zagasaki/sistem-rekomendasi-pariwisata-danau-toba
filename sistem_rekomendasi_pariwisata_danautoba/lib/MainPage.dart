@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Components/BottomNavBar.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
@@ -17,12 +16,11 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    loadUserDataFromSharedPreferences();
+    loadUserData();
   }
 
-  Future<void> loadUserDataFromSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final uid = prefs.getString("uid");
+  Future<void> loadUserData() async {
+    final uid = context.read<UserProvider>().uid;
 
     if (uid != null) {
       DocumentSnapshot userSnapshot =

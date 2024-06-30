@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -56,6 +58,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (_isLoggedIn && mounted) {
       // Check if the widget is still mounted
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final uid = prefs.getString("uid");
+      context.read<UserProvider>().setUid(uid);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainPage()),

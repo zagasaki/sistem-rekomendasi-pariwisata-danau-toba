@@ -30,6 +30,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
             label: "Home",
             backgroundColor: Colors.amber),
         BottomNavigationBarItem(
+            icon: Icon(Icons.history_sharp, size: 20, color: Colors.white),
+            label: "History",
+            backgroundColor: Colors.amber),
+        BottomNavigationBarItem(
             icon: Icon(Icons.person, size: 20, color: Colors.white),
             label: "Profile",
             backgroundColor: Colors.amber)

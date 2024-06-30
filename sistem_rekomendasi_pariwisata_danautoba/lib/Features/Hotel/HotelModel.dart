@@ -85,16 +85,24 @@ class Hotel {
 }
 
 class Review {
-  final int rating;
-  final String comment;
+  final double rating;
+  final String deskripsi;
+  final DateTime tanggal;
+  final String username;
 
-  Review({required this.rating, required this.comment});
+  Review(
+      {required this.rating,
+      required this.deskripsi,
+      required this.tanggal,
+      required this.username});
 
   factory Review.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Review(
-      rating: data['rating'],
-      comment: data['comment'],
+      rating: data['rating'] ?? 'unknown rating',
+      deskripsi: data['deskripsi'] ?? 'unknown desc',
+      tanggal: (data['tanggal'] as Timestamp).toDate(),
+      username: data['username'] ?? 'anynomous',
     );
   }
 }

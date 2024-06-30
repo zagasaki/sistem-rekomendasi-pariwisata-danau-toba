@@ -1,4 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelDetail.dart';
@@ -14,6 +13,7 @@ class HotelScreen extends StatefulWidget {
 class _HotelScreenState extends State<HotelScreen> {
   List<Hotel> hotels = [];
   bool isLoading = true;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -33,11 +33,38 @@ class _HotelScreenState extends State<HotelScreen> {
     print("ini adalah data${(data)}");
   }
 
+  List<Hotel> filteredHotels(String query) {
+    return hotels.where((hotel) {
+      final hotelNameLower = hotel.name.toLowerCase();
+      final searchLower = query.toLowerCase();
+      return hotelNameLower.contains(searchLower);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hotel List'),
+        title: TextField(
+          controller: searchController,
+          decoration: const InputDecoration(
+            hintText: 'Cari hotel...',
+            border: InputBorder.none,
+          ),
+          onChanged: (value) {
+            setState(() {}); // Trigger rebuild on typing
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () {
+              setState(() {
+                searchController.clear();
+              });
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -50,16 +77,17 @@ class _HotelScreenState extends State<HotelScreen> {
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
                 ),
-                itemCount: hotels.length,
+                itemCount: filteredHotels(searchController.text).length,
                 itemBuilder: (context, index) {
-                  final hotel = hotels[index];
+                  final hotel = filteredHotels(searchController.text)[index];
                   return InkWell(
                       onTap: () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>
-                                    HotelDetailPage(hotel: hotel)));
+                                builder: (context) => HotelDetailPage(
+                                      hotel: hotel,
+                                    )));
                       },
                       child: Card(
                         shape: RoundedRectangleBorder(

@@ -56,20 +56,13 @@ class _RegisterState extends State<Register> {
 
       DocumentSnapshot userSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      Map<String, dynamic> userData =
-          userSnapshot.data() as Map<String, dynamic>;
+      userSnapshot.data() as Map<String, dynamic>;
 
       setState(() {
         userData = userSnapshot.data() as Map<String, dynamic>;
       });
 
       // Memperbarui data pengguna di UserProvider
-      context.read<UserProvider>().updateUserData(
-            userData['username'],
-            userData['email'],
-            userData['phone'],
-            userData['profilephoto'],
-          );
 
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const MainPage()));

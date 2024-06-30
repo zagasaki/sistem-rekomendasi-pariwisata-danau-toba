@@ -41,17 +41,7 @@ class _LoginState extends State<Login> {
 
       DocumentSnapshot userSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-      Map<String, dynamic> userData =
-          userSnapshot.data() as Map<String, dynamic>;
-
-      context.read<UserProvider>().updateUserData(
-            userData["username"],
-            userData["email"],
-            userData["phone"],
-            userData["profilephoto"],
-          );
-
+      userSnapshot.data() as Map<String, dynamic>;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainPage()),

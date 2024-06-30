@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/History/History.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/HomePage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Profile/Profile.dart';
 
 class NavBarProv extends ChangeNotifier {
   List<Widget> _body = [
     const HomePage(),
+    const HistoryPage(),
     const Profile(),
   ];
   inisialisasi() {}

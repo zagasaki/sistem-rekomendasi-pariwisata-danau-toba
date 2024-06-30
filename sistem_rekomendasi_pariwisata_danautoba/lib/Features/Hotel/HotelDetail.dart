@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelBooking.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelReview.dart';
+import 'HotelBooking.dart';
+import 'HotelModel.dart';
 
 class HotelDetailPage extends StatefulWidget {
   final Hotel hotel;
@@ -41,18 +42,27 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
     return snapshot.docs.map((doc) => Room.fromDocSnapshot(doc)).toList();
   }
 
-  void _showAllReviews(BuildContext context) {
+  void _showAllReviews(BuildContext context, String hotelId) {
+    // Mendeklarasikan stream di dalam fungsi untuk memastikan penggunaan konteks yang benar
+    Stream<List<Review>> reviewsStream = FirebaseFirestore.instance
+        .collection('hotels')
+        .doc(hotelId)
+        .collection('reviews')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Review.fromFirestore(doc)).toList());
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Semua Ulasan'),
           content: SingleChildScrollView(
             child: StreamBuilder<List<Review>>(
-              stream: _reviewsStream,
+              stream: reviewsStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
+                  return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
@@ -62,23 +72,49 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                 }
                 return Column(
                   children: snapshot.data!.map((review) {
-                    return ListTile(
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              review.comment,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(fontSize: 16),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4.0),
+                      color: Colors.blue[100], // Warna latar belakang ListTile
+                      child: ListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'By: ${review.username}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                                const Icon(Icons.star, color: Colors.yellow),
+                                Text(
+                                  '${review.rating}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.star, color: Colors.yellow),
-                          Text(
-                            '${review.rating}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              review.deskripsi,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tanggal: ${review.tanggal}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }).toList(),
@@ -89,7 +125,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
               child: const Text('Tutup'),
             ),
@@ -222,7 +258,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                     stream: _reviewsStream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
+                        return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
@@ -230,35 +266,83 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Text('Belum ada ulasan.');
                       }
-                      return Column(
-                        children: snapshot.data!.map((review) {
-                          return ListTile(
-                            title: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    review.comment,
-                                    textAlign: TextAlign.right,
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
+                      // Ambil 5 ulasan terbaru
+                      List<Review> latestReviews =
+                          snapshot.data!.reversed.take(5).toList();
+
+                      return SizedBox(
+                        height:
+                            200, // Atur tinggi ListView sesuai kebutuhan Anda
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: latestReviews.length,
+                          itemBuilder: (context, index) {
+                            Review review = latestReviews[index];
+                            return Container(
+                              width: 300, // Lebar container untuk setiap ulasan
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(20)),
+                              ),
+                              child: ListTile(
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            review.username,
+                                            style: const TextStyle(
+                                                fontSize: 17,
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w900),
+                                          ),
+                                        ),
+                                        const Icon(Icons.star,
+                                            color: Colors.yellow),
+                                        Text(
+                                          '${review.rating}',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      review.deskripsi,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${review.tanggal}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.star, color: Colors.yellow),
-                                Text(
-                                  '${review.rating}',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
-                      _showAllReviews(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  HotelReview(hotelId: widget.hotel.id)));
                     },
                     child: const Text('Lihat Semua Ulasan'),
                   ),
@@ -287,7 +371,6 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                                   Stack(
                                     alignment: Alignment.bottomLeft,
                                     children: [
-                                      // Check if the room image URL is valid
                                       if (room.imageUrl.isNotEmpty)
                                         Image.network(
                                           room.imageUrl,
@@ -370,6 +453,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                                                 builder: (context) =>
                                                     BookingPage(
                                                   room: room,
+                                                  hotel: widget.hotel,
                                                 ),
                                               ),
                                             );
