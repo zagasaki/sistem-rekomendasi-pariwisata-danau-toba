@@ -25,7 +25,7 @@ class _HotelReviewState extends State<HotelReview> {
       query = query.orderBy('tanggal', descending: true);
     } else {
       // Filter berdasarkan rating
-      int rating = int.parse(filter); // Parsing filter menjadi integer
+      int rating = int.parse(filter);
       query = query.where('rating', isEqualTo: rating);
     }
 

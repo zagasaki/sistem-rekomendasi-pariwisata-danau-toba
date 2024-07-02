@@ -33,7 +33,7 @@ class HistoryItem {
       type: data['type'] ?? 'No Type',
       details: data['details'] ?? 'No Details',
       date: data['date'],
-      price: data['price'] ?? 0,
+      price: data['totalHarga'] ?? 0,
     );
   }
 }

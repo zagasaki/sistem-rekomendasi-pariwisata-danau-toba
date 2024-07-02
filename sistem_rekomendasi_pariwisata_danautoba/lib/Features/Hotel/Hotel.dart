@@ -100,7 +100,7 @@ class _HotelScreenState extends State<HotelScreen> {
                               borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(10)),
                               child: Image.network(
-                                hotel.imageUrl,
+                                hotel.imageUrls[0],
                                 height: 150,
                                 width: double.infinity,
                                 fit: BoxFit.cover,

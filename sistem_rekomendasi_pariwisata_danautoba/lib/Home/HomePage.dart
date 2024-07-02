@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/Hotel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Kuliner/kuliner.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class HomePage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
       case 'Kuliner':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const KulinerPage()),
+          MaterialPageRoute(builder: (context) => const KulinerWidget()),
         );
         break;
       case 'Bus':
@@ -221,22 +222,6 @@ class ShareStoryPage extends StatelessWidget {
       ),
       body: const Center(
         child: Text('Welcome to Share Story Page'),
-      ),
-    );
-  }
-}
-
-class KulinerPage extends StatelessWidget {
-  const KulinerPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kuliner Page'),
-      ),
-      body: const Center(
-        child: Text('Welcome to Kuliner Page'),
       ),
     );
   }

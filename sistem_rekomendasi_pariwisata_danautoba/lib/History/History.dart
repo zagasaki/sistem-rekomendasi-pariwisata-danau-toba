@@ -209,7 +209,7 @@ class CustomCard extends StatelessWidget {
       'tanggal': Timestamp.fromDate(DateTime.now()),
     };
 
-    // Referensi ke dokumen hotel
+    // hotel doc
     DocumentReference hotelDoc =
         FirebaseFirestore.instance.collection('hotels').doc(hotelId);
 

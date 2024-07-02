@@ -196,9 +196,9 @@ class _BookingPageState extends State<BookingPage> {
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   children: [
-                    if (widget.room.imageUrl.isNotEmpty)
+                    if (widget.room.roomImageUrl.isNotEmpty)
                       Image.network(
-                        widget.room.imageUrl,
+                        widget.room.roomImageUrl,
                         height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
