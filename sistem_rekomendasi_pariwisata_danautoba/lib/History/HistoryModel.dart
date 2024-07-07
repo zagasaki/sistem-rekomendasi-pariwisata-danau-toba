@@ -2,22 +2,43 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HistoryItem {
   final String id;
-  final String itemId;
-  final String name;
-  final String type;
-  final String details;
+  final String historyType;
   final String date;
+  final String paymentMethod;
   final int price;
+  final String username;
+  final bool reviewed;
 
-  HistoryItem({
-    required this.id,
-    required this.itemId,
-    required this.name,
-    required this.type,
-    required this.details,
-    required this.date,
-    required this.price,
-  });
+  //HotelHistoryModel
+  final String hotelID;
+  final String hotelName;
+  final String roomType;
+
+  //KulinerHistoryModel
+  final String kulinerID;
+  final String kulinerName;
+  final String address;
+  final String notes;
+
+  HistoryItem(
+      {required this.id,
+      required this.historyType,
+      required this.date,
+      required this.paymentMethod,
+      required this.price,
+      required this.username,
+      required this.reviewed,
+
+      //HotelHistoryModel
+      required this.hotelID,
+      required this.hotelName,
+      required this.roomType,
+
+      //KulinerHistoryModel
+      required this.kulinerID,
+      required this.kulinerName,
+      required this.address,
+      required this.notes});
 
   factory HistoryItem.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
@@ -27,13 +48,23 @@ class HistoryItem {
     }
 
     return HistoryItem(
-      id: doc.id,
-      itemId: data['itemId'] ?? 'No ID',
-      name: data['name'] ?? 'No Name',
-      type: data['type'] ?? 'No Type',
-      details: data['details'] ?? 'No Details',
-      date: data['date'],
-      price: data['totalHarga'] ?? 0,
-    );
+        id: doc.id,
+        historyType: data['historyType'] ?? 'unknown history type',
+        date: data['date'] ?? 'unknown history date',
+        paymentMethod: data['paymentMethod'] ?? 'unknown payment method',
+        price: data['price'] ?? 0,
+        username: data['username'] ?? 'unknown username',
+        reviewed: data['reviewed'] ?? false,
+
+        //HotelHistoryModel
+        hotelID: data['hotelID'] ?? 'unknown hotel id',
+        hotelName: data['hotelName'] ?? 'unknown hotel name',
+        roomType: data['roomType'] ?? 'unknown room type',
+
+        //KulinerHistoryModel
+        kulinerID: data['kulinerID'] ?? 'unknown kuliner id',
+        kulinerName: data['kulinerName'] ?? 'unknown kuliner name',
+        address: data['address'] ?? 'unknown address',
+        notes: data['notes'] ?? 'unknown notes');
   }
 }

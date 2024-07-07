@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
@@ -26,6 +25,8 @@ class _HistoryPageState extends State<HistoryPage> {
             .collection('users')
             .doc(userId)
             .collection('history')
+            .orderBy('date',
+                descending: true) // Mengurutkan berdasarkan tanggal paling baru
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -66,169 +67,74 @@ class CustomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      elevation: 5,
-      margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.blueAccent,
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HistoryDetail(historyItem: historyItem),
+          ),
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          title: Text(
-            historyItem.name,
-            style: const TextStyle(
+        elevation: 5,
+        margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.blueAccent,
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          child: ListTile(
+            leading: Icon(
+              historyItem.historyType == 'hotel'
+                  ? Icons.hotel
+                  : Icons.restaurant,
               color: Colors.white,
-              fontWeight: FontWeight.bold,
             ),
-          ),
-          subtitle: Text(
-            historyItem.details,
-            style: const TextStyle(
-              color: Colors.white70,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            title: Text(
+              historyItem.historyType == 'hotel'
+                  ? historyItem.hotelName
+                  : historyItem.kulinerName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          trailing: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'Rp ${historyItem.price}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                ),
+            subtitle: Text(
+              historyItem.historyType == 'hotel'
+                  ? historyItem.roomType
+                  : 'notes: ${historyItem.notes}',
+              style: const TextStyle(
+                color: Colors.white70,
               ),
-              Text(
-                historyItem.date,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () {
-                  _navigateToReviewPage(context, historyItem);
-                },
-                child: const Text('Beri Ulasan'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToReviewPage(BuildContext context, HistoryItem historyItem) {
-    TextEditingController reviewController = TextEditingController();
-    double rating = 0.0;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Beri Ulasan'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Item: ${historyItem.name}'),
-            const SizedBox(height: 16),
-            RatingBar.builder(
-              initialRating: 0,
-              minRating: 1,
-              direction: Axis.horizontal,
-              allowHalfRating: true,
-              itemCount: 5,
-              itemBuilder: (context, _) => const Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              onRatingUpdate: (ratingValue) {
-                rating = ratingValue;
-              },
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reviewController,
-              maxLength: 100,
-              decoration: const InputDecoration(
-                hintText: 'Masukkan ulasan Anda...',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              String reviewText = reviewController.text.trim();
-              if (reviewText.isNotEmpty && rating > 0) {
-                _submitReview(context, historyItem, reviewText, rating);
-                Navigator.of(context).pop();
-              } else {
-                // Tampilkan pesan error jika ulasan kosong atau rating belum diberikan
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                        'Masukkan ulasan dan rating Anda terlebih dahulu.'),
-                    duration: Duration(seconds: 2),
+            trailing: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'Rp ${historyItem.price}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.0,
                   ),
-                );
-              }
-            },
-            child: const Text('Simpan Ulasan'),
+                ),
+                Text(
+                  historyItem.date.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.0,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
-  }
-
-  void _submitReview(BuildContext context, HistoryItem historyItem,
-      String reviewText, double rating) {
-    final username = context.read<UserProvider>().username;
-    final hotelId =
-        historyItem.itemId; // Sesuaikan dengan ID hotel dari historyItem
-
-    // Data ulasan yang akan dikirim ke koleksi 'reviews' di hotel
-    Map<String, dynamic> reviewData = {
-      'username': username,
-      'rating': rating,
-      'deskripsi': reviewText,
-      'tanggal': Timestamp.fromDate(DateTime.now()),
-    };
-
-    // hotel doc
-    DocumentReference hotelDoc =
-        FirebaseFirestore.instance.collection('hotels').doc(hotelId);
-
-    // Tambah ulasan ke sub-koleksi 'reviews' dalam dokumen hotel
-    hotelDoc.collection('reviews').add(reviewData).then((_) {
-      Fluttertoast.showToast(
-        msg: 'Review berhasil',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-    }).catchError((error) {
-      // Handle error jika gagal menambah ulasan
-      Fluttertoast.showToast(
-        msg: 'Review gagal,coba lagi',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-    });
   }
 }

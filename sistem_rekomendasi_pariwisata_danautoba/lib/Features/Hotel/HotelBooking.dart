@@ -119,12 +119,15 @@ class _BookingPageState extends State<BookingPage> {
         .add(bookingData)
         .then((value) {
       Map<String, dynamic> historyData = {
-        'type': 'hotel',
-        'itemId': widget.hotel.id,
-        'name': widget.hotel.name,
-        'details': widget.room.type,
-        'totalHarga': price,
+        'historyType': 'hotel',
         'date': DateFormat("dd-MM-yyyy HH:mm").format(DateTime.now()),
+        'paymentMethod': _selectedPaymentMethod,
+        'price': price,
+        'username': context.read<UserProvider>().username,
+        'reviewed': false,
+        'hotelID': widget.hotel.id,
+        'hotelName': widget.hotel.name,
+        'roomType': widget.room.type,
       };
 
       // Menambahkan data history ke koleksi 'history' di dalam dokumen user
@@ -196,9 +199,9 @@ class _BookingPageState extends State<BookingPage> {
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   children: [
-                    if (widget.room.roomImageUrl.isNotEmpty)
+                    if (widget.room.imageUrl.isNotEmpty)
                       Image.network(
-                        widget.room.roomImageUrl,
+                        widget.room.imageUrl,
                         height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
