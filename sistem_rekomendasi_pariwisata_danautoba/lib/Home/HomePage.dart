@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/Hotel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Kuliner/kuliner.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Share%20Story/Story.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class HomePage extends StatefulWidget {
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
       case 'Share Story':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ShareStoryPage()),
+          MaterialPageRoute(builder: (context) => const Story()),
         );
         break;
       case 'Kuliner':
@@ -206,22 +207,6 @@ class WisataPage extends StatelessWidget {
       ),
       body: const Center(
         child: Text('Welcome to Wisata Page'),
-      ),
-    );
-  }
-}
-
-class ShareStoryPage extends StatelessWidget {
-  const ShareStoryPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Share Story Page'),
-      ),
-      body: const Center(
-        child: Text('Welcome to Share Story Page'),
       ),
     );
   }

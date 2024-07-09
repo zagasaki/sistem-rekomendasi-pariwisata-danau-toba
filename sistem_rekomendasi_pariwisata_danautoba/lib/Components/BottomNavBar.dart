@@ -17,7 +17,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       selectedLabelStyle: const TextStyle(fontSize: 15),
       selectedIconTheme: const IconThemeData(size: 15),
       showSelectedLabels: true,
-      showUnselectedLabels: true,
+      showUnselectedLabels: false,
       type: BottomNavigationBarType.fixed,
       backgroundColor: Colors.green,
       onTap: (idx) {
