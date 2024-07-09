@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
       case 'Vacations':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Vacations()),
+          MaterialPageRoute(builder: (context) => const MapsPage()),
         );
         break;
       case 'Moments':

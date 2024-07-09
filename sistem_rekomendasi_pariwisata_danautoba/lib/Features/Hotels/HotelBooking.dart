@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 class BookingPage extends StatefulWidget {
   final Room room;
@@ -180,29 +181,42 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+
     return Scaffold(
+      backgroundColor: color1,
       appBar: AppBar(
-        title: const Text('Booking'),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: color2,
+        title: const Text(
+          'Booking',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(screenWidth * 0.04), // 4% of screen width
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Detail Kamar:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: screenWidth * 0.02), // 2% of screen width
               Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
                 child: Column(
                   children: [
                     if (widget.room.imageUrl.isNotEmpty)
                       Image.network(
                         widget.room.imageUrl,
-                        height: 200,
+                        height: screenWidth * 0.5, // 50% of screen width
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
@@ -213,10 +227,12 @@ class _BookingPageState extends State<BookingPage> {
                         children: [
                           Text(
                               'Harga per malam: Rp ${widget.room.pricePerNight}'),
-                          const SizedBox(height: 4),
+                          SizedBox(
+                              height: screenWidth * 0.01), // 1% of screen width
                           Text(
                               'Fasilitas: ${widget.room.facilities.join(', ')}'),
-                          const SizedBox(height: 4),
+                          SizedBox(
+                              height: screenWidth * 0.01), // 1% of screen width
                           Text(
                             'Ketersediaan: ${widget.room.available ? 'Tersedia' : 'Penuh'}',
                             style: TextStyle(
@@ -231,32 +247,41 @@ class _BookingPageState extends State<BookingPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: screenWidth * 0.04), // 4% of screen width
+              Text(
                 'Tanggal Check-in:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: screenWidth * 0.02), // 2% of screen width
               ElevatedButton(
                 onPressed: () => _selectDate(context, _selectCheckInDate),
                 child: Text(DateFormat('dd MMMM yyyy').format(_checkInDate)),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: screenWidth * 0.04), // 4% of screen width
+              Text(
                 'Tanggal Check-out:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: screenWidth * 0.02), // 2% of screen width
               ElevatedButton(
                 onPressed: () => _selectDate(context, _selectCheckOutDate),
                 child: Text(DateFormat('dd MMMM yyyy').format(_checkOutDate)),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: screenWidth * 0.04), // 4% of screen width
+              Text(
                 'Metode Pembayaran:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: screenWidth * 0.02), // 2% of screen width
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
                 onChanged: (value) {
@@ -280,13 +305,15 @@ class _BookingPageState extends State<BookingPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    Text(
                       'Bank Tujuan:',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.04, // 4% of screen width
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
                     DropdownButtonFormField<String>(
                       value: _selectedBank,
                       onChanged: (value) {
@@ -308,13 +335,15 @@ class _BookingPageState extends State<BookingPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    Text(
                       'E-Wallet:',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.04, // 4% of screen width
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
                     DropdownButtonFormField<String>(
                       value: _selectedEwallet,
                       onChanged: (value) {
@@ -336,13 +365,15 @@ class _BookingPageState extends State<BookingPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    Text(
                       'Nomor Kartu Kredit:',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.04, // 4% of screen width
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
                     TextFormField(
                       onChanged: (value) {
                         setState(() {
@@ -357,24 +388,49 @@ class _BookingPageState extends State<BookingPage> {
                     ),
                   ],
                 ),
-              const SizedBox(height: 16),
-              const Text(
-                'Total Harga:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Rp $price',
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _confirmBooking,
-                child: const Text('Konfirmasi Booking'),
-              ),
+              SizedBox(height: screenWidth * 0.04), // 4% of screen width
             ],
           ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        height: 70,
+        padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.08), // 8% of screen width
+        decoration: const BoxDecoration(color: Colors.white),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Rp $price',
+              style: TextStyle(
+                fontSize: screenWidth * 0.06, // 6% of screen width
+                fontWeight: FontWeight.bold,
+                color: color2,
+              ),
+            ),
+            SizedBox(height: screenWidth * 0.04), // 4% of screen width
+            InkWell(
+              onTap: _confirmBooking,
+              child: Container(
+                padding:
+                    EdgeInsets.all(screenWidth * 0.02), // 2% of screen width
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                    color: color2,
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                height: screenWidth * 0.15, // 15% of screen width
+                child: Text(
+                  'Konfirmasi Booking',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: screenWidth * 0.04, // 4% of screen width
+                  ),
+                ),
+              ),
+            )
+          ],
         ),
       ),
     );
