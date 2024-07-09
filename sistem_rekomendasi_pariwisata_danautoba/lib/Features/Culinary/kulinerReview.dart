@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelModel.dart';
 
 class KulinerReview extends StatefulWidget {
   final String kulinerId;

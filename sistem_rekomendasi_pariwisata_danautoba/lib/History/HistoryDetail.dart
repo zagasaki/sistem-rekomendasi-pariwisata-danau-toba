@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 class HistoryDetail extends StatefulWidget {
   final HistoryItem historyItem;
@@ -91,75 +92,64 @@ class _HistoryDetailState extends State<HistoryDetail> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final screenHeight = screenSize.height;
-    final screenWidth = screenSize.width;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.historyItem.historyType == 'hotel'
-            ? widget.historyItem.hotelName
-            : widget.historyItem.kulinerName),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: color2,
+        centerTitle: true,
+        title: Text(
+          widget.historyItem.historyType == 'hotel'
+              ? widget.historyItem.hotelName
+              : widget.historyItem.kulinerName,
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.05,
-          vertical: screenHeight * 0.02,
+          horizontal: screenSize.width * 0.05,
+          vertical: screenSize.height * 0.02,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Type: ${widget.historyItem.historyType}',
+              'Transaction success!',
               style: TextStyle(
-                  fontSize: screenWidth * 0.05, fontWeight: FontWeight.bold),
+                fontSize: screenSize.width * 0.05,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
             ),
-            SizedBox(height: screenHeight * 0.02),
-            Text(
-              'Date: ${widget.historyItem.date}',
-              style: TextStyle(fontSize: screenWidth * 0.045),
-            ),
-            SizedBox(height: screenHeight * 0.02),
-            Text(
-              'Price: Rp ${widget.historyItem.price}',
-              style: TextStyle(fontSize: screenWidth * 0.045),
-            ),
-            SizedBox(height: screenHeight * 0.02),
-            Text(
-              'Payment Method: ${widget.historyItem.paymentMethod}',
-              style: TextStyle(fontSize: screenWidth * 0.045),
-            ),
-            SizedBox(height: screenHeight * 0.02),
-            if (widget.historyItem.historyType == 'hotel') ...[
-              Text(
-                'Hotel Name: ${widget.historyItem.hotelName}',
-                style: TextStyle(fontSize: screenWidth * 0.045),
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              Text(
-                'Room Type: ${widget.historyItem.roomType}',
-                style: TextStyle(fontSize: screenWidth * 0.045),
-              ),
-            ] else ...[
-              Text(
-                'Kuliner Name: ${widget.historyItem.kulinerName}',
-                style: TextStyle(fontSize: screenWidth * 0.045),
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              Text(
-                'Address: ${widget.historyItem.address}',
-                style: TextStyle(fontSize: screenWidth * 0.045),
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              Text(
-                'Notes: ${widget.historyItem.notes}',
-                style: TextStyle(fontSize: screenWidth * 0.045),
-              ),
-            ],
+            _buildDetailRow('Transaction ID', widget.historyItem.id),
+            SizedBox(height: screenSize.height * 0.02),
+            _buildDetailRow(
+                'Order Merchant ID',
+                widget.historyItem.historyType == 'hotel'
+                    ? widget.historyItem.hotelID
+                    : widget.historyItem.kulinerID),
+            SizedBox(height: screenSize.height * 0.02),
+            _buildDetailRow('Transaction Date', widget.historyItem.date),
+            SizedBox(height: screenSize.height * 0.02),
+            const Divider(),
+            _buildDetailRow('Payment method', widget.historyItem.paymentMethod),
+            SizedBox(height: screenSize.height * 0.02),
+            if (widget.historyItem.historyType == 'hotel')
+              _buildDetailRow('Nama Hotel', widget.historyItem.hotelName),
+            if (widget.historyItem.historyType == 'hotel')
+              _buildDetailRow('Room type', widget.historyItem.roomType),
+            if (widget.historyItem.historyType == 'kuliner')
+              _buildDetailRow('Nama Kuliner', widget.historyItem.kulinerName),
+            SizedBox(height: screenSize.height * 0.02),
+            _buildDetailRow('Price', 'Rp${widget.historyItem.price}'),
+            SizedBox(height: screenSize.height * 0.02),
+            const Divider(),
+            SizedBox(height: screenSize.height * 0.02),
           ],
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.all(screenWidth * 0.05),
+        padding: EdgeInsets.all(screenSize.width * 0.05),
         child: FutureBuilder<bool>(
           future: _isReviewed,
           builder: (context, snapshot) {
@@ -174,16 +164,38 @@ class _HistoryDetailState extends State<HistoryDetail> {
                       _navigateToReviewPage(context, widget.historyItem);
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: isReviewed ? Colors.grey : Colors.blue,
-              ),
+                  backgroundColor: isReviewed ? Colors.grey : color2),
               child: Text(
                 isReviewed ? "Ulasan Diberikan" : "Berikan Ulasan",
-                style: TextStyle(fontSize: screenWidth * 0.045),
+                style: TextStyle(
+                    fontSize: screenSize.width * 0.045, color: color1),
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    final screenSize = MediaQuery.of(context).size;
+
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: screenSize.width * 0.04,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(fontSize: screenSize.width * 0.04),
+          ),
+        ),
+      ],
     );
   }
 

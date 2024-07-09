@@ -36,7 +36,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
-    // Add a delay to keep the SplashScreen displayed during the animation
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) {
         // Check if the widget is still mounted
@@ -46,7 +45,6 @@ class _SplashScreenState extends State<SplashScreen>
       }
     });
 
-    // Move _checkLoginStatus call inside the delay
     Future.delayed(const Duration(seconds: 6), () {
       _checkLoginStatus();
     });
@@ -57,7 +55,6 @@ class _SplashScreenState extends State<SplashScreen>
     _isLoggedIn = prefs.getBool('login') ?? false;
 
     if (_isLoggedIn && mounted) {
-      // Check if the widget is still mounted
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final uid = prefs.getString("uid");
       context.read<UserProvider>().setUid(uid);
@@ -66,7 +63,6 @@ class _SplashScreenState extends State<SplashScreen>
         MaterialPageRoute(builder: (context) => const MainPage()),
       );
     } else if (mounted) {
-      // Check if the widget is still mounted
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const Login()),

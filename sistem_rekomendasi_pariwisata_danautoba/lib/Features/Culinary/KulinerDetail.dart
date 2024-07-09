@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Kuliner/kulinerReview.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/kulinerReview.dart';
 import 'KulinerModel.dart'; // Adjust the import path if necessary
 import 'KulinerPayment.dart'; // Import the payment page// Ensure ReviewModel is imported
 

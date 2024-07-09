@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelReview.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelReview.dart';
 import 'HotelBooking.dart';
 import 'HotelModel.dart';
 

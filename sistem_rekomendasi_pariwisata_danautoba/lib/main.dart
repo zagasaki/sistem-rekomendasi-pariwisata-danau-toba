@@ -8,6 +8,7 @@ import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: color2),
         useMaterial3: true,
       ),
       home: const SplashScreen(),

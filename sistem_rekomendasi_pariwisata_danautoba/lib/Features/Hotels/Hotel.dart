@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotel/HotelDetail.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelDetail.dart';
 import 'HotelModel.dart';
 
 class HotelScreen extends StatefulWidget {

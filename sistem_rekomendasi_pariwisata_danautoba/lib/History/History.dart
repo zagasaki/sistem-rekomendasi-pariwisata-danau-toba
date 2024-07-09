@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -16,17 +17,23 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     final userId = context.read<UserProvider>().uid;
+
     return Scaffold(
+      backgroundColor: color1,
       appBar: AppBar(
-        title: const Text('History'),
+        centerTitle: true,
+        backgroundColor: color2,
+        title: const Text(
+          'History',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
             .collection('history')
-            .orderBy('date',
-                descending: true) // Mengurutkan berdasarkan tanggal paling baru
+            .orderBy('date', descending: true)
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -67,6 +74,8 @@ class CustomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -81,10 +90,13 @@ class CustomCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(15.0),
         ),
         elevation: 5,
-        margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        margin: EdgeInsets.symmetric(
+          horizontal: screenSize.width * 0.025,
+          vertical: screenSize.height * 0.01,
+        ),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.blueAccent,
+            color: color2,
             borderRadius: BorderRadius.circular(15.0),
           ),
           child: ListTile(
@@ -94,8 +106,10 @@ class CustomCard extends StatelessWidget {
                   : Icons.restaurant,
               color: Colors.white,
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: screenSize.width * 0.05,
+              vertical: screenSize.height * 0.02,
+            ),
             title: Text(
               historyItem.historyType == 'hotel'
                   ? historyItem.hotelName
