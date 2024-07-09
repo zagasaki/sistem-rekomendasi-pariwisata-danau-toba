@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "287021798913",
+    "project_id": "sistemrekomendasipariwisatadt",
+    "storage_bucket": "sistemrekomendasipariwisatadt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:287021798913:android:b1954a7034ed8c16535200",
+        "android_client_info": {
+          "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrum-HNoxnGbrGblwobsBUKDfaW7kGuAw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
