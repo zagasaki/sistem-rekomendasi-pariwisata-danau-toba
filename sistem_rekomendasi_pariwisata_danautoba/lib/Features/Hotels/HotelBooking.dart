@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/HomePage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
@@ -20,10 +21,10 @@ class _BookingPageState extends State<BookingPage> {
   late DateTime _checkInDate;
   late DateTime _checkOutDate;
   late int price;
-  String _selectedPaymentMethod = 'Transfer Bank'; // Default payment method
-  String _selectedBank = 'BCA'; // Default bank for Transfer Bank option
+  String _selectedPaymentMethod = 'Transfer Bank';
+  String _selectedBank = 'BCA';
   String _creditCardNumber = '';
-  String _selectedEwallet = "OVO"; // Variable to store credit card number
+  String _selectedEwallet = "OVO";
 
   @override
   void initState() {
@@ -147,7 +148,10 @@ class _BookingPageState extends State<BookingPage> {
               TextButton(
                 child: const Text('OK'),
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HomePage()));
                 },
               ),
             ],
@@ -277,17 +281,16 @@ class _BookingPageState extends State<BookingPage> {
               Text(
                 'Metode Pembayaran:',
                 style: TextStyle(
-                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontSize: screenWidth * 0.05,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: screenWidth * 0.02), // 2% of screen width
+              SizedBox(height: screenWidth * 0.02),
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
                 onChanged: (value) {
                   setState(() {
                     _selectedPaymentMethod = value!;
-                    // Reset selected bank and credit card number when changing payment method
                     _selectedBank = 'BCA';
                     _creditCardNumber = '';
                     _selectedEwallet = "OVO";

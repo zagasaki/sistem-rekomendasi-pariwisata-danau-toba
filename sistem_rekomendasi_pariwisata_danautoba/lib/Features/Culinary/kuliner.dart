@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'KulinerModel.dart';
 import 'KulinerDetail.dart';
 
@@ -35,7 +36,13 @@ class _KulinerWidgetState extends State<KulinerWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kuliner'),
+        iconTheme: const IconThemeData(color: color1),
+        centerTitle: true,
+        backgroundColor: color2,
+        title: const Text(
+          'Kuliner',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/KulinerModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 class KulinerPayment extends StatefulWidget {
   final KulinerModel kuliner;
@@ -179,7 +180,13 @@ class _KulinerPaymentState extends State<KulinerPayment> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kuliner Payment'),
+        iconTheme: const IconThemeData(color: color1),
+        centerTitle: true,
+        backgroundColor: color2,
+        title: const Text(
+          'Payment',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -273,15 +280,19 @@ class _KulinerPaymentState extends State<KulinerPayment> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
+        color: color2,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total: Rp $totalPrice'),
+              Text(
+                'Total: Rp $totalPrice',
+                style: const TextStyle(color: Colors.white),
+              ),
               ElevatedButton(
                 onPressed: _confirmPurchase,
-                child: const Text('Beli'),
+                child: const Text('Buy'),
               ),
             ],
           ),

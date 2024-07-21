@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/kulinerReview.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'KulinerModel.dart'; // Adjust the import path if necessary
 import 'KulinerPayment.dart'; // Import the payment page// Ensure ReviewModel is imported
 
@@ -44,7 +45,7 @@ class KulinerDetail extends StatelessWidget {
                   children: snapshot.data!.map((review) {
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
-                      color: Colors.blue[100], // Background color for ListTile
+                      color: color3,
                       child: ListTile(
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,7 +110,13 @@ class KulinerDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(kuliner.name),
+        iconTheme: const IconThemeData(color: color1),
+        centerTitle: true,
+        backgroundColor: color2,
+        title: Text(
+          kuliner.name,
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(

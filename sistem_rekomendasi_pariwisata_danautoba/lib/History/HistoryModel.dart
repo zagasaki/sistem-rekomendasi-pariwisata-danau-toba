@@ -20,25 +20,44 @@ class HistoryItem {
   final String address;
   final String notes;
 
-  HistoryItem(
-      {required this.id,
-      required this.historyType,
-      required this.date,
-      required this.paymentMethod,
-      required this.price,
-      required this.username,
-      required this.reviewed,
+  //BusHistoryModel
+  final String ticketID;
+  final String departTime;
+  final String departDate;
+  final String destination;
+  final String origin;
+  final int totalpassanger;
+  final String transportName;
 
-      //HotelHistoryModel
-      required this.hotelID,
-      required this.hotelName,
-      required this.roomType,
+  HistoryItem({
+    required this.id,
+    required this.historyType,
+    required this.date,
+    required this.paymentMethod,
+    required this.price,
+    required this.username,
+    required this.reviewed,
 
-      //KulinerHistoryModel
-      required this.kulinerID,
-      required this.kulinerName,
-      required this.address,
-      required this.notes});
+    //HotelHistoryModel
+    required this.hotelID,
+    required this.hotelName,
+    required this.roomType,
+
+    //KulinerHistoryModel
+    required this.kulinerID,
+    required this.kulinerName,
+    required this.address,
+    required this.notes,
+
+    //BusHistoryModel
+    required this.ticketID,
+    required this.transportName,
+    required this.departDate,
+    required this.departTime,
+    required this.destination,
+    required this.origin,
+    required this.totalpassanger,
+  });
 
   factory HistoryItem.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
@@ -65,6 +84,15 @@ class HistoryItem {
         kulinerID: data['kulinerID'] ?? 'unknown kuliner id',
         kulinerName: data['kulinerName'] ?? 'unknown kuliner name',
         address: data['address'] ?? 'unknown address',
-        notes: data['notes'] ?? 'unknown notes');
+        notes: data['notes'] ?? 'unknown notes',
+
+        //BusHistoryModel
+        ticketID: data['ticketID'] ?? 'uknown ticketID',
+        departTime: data['departTime'] ?? 'unknown departTime',
+        departDate: data['departDate'] ?? 'unknown departDate',
+        destination: data['destination'] ?? 'unknown destination',
+        origin: data['origin'] ?? 'unknown origin',
+        totalpassanger: data['totalPassanger'] ?? 0,
+        transportName: data['transportName'] ?? 'unknown transportName');
   }
 }

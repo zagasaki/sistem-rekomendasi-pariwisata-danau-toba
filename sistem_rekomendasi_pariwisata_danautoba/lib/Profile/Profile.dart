@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Profile/ChangePassword.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
@@ -84,7 +85,10 @@ class _ProfileState extends State<Profile> {
                 title: const Text('Change Password'),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
-                  // Handle change password
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Changepassword()));
                 },
               ),
               ListTile(

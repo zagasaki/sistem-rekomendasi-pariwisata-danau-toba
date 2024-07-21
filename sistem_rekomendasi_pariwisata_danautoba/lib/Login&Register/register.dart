@@ -49,6 +49,8 @@ class _RegisterState extends State<Register> {
         'username': _usernameController.text,
         'phone': _phoneController.text,
         'email': email,
+        'tags': ["tuktuk"],
+        'vacationtags': ["pemandangandanau"]
       });
 
       await firebaseAuth.signInWithEmailAndPassword(

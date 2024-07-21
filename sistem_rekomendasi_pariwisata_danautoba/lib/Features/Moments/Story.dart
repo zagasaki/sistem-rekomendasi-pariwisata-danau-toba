@@ -98,7 +98,7 @@ class _StoryState extends State<Story> {
   Future<bool> _requestPermission(ImageSource source) async {
     Permission permission;
     if (source == ImageSource.gallery) {
-      permission = Permission.photos;
+      permission = Permission.storage;
     } else {
       permission = Permission.camera;
     }

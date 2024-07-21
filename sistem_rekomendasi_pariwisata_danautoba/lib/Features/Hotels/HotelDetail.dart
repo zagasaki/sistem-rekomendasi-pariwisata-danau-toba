@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelReview.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'HotelBooking.dart';
 import 'HotelModel.dart';
 
@@ -244,7 +245,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                     children: widget.hotel.facilities.map((facility) {
                       return Chip(
                         label: Text(facility),
-                        backgroundColor: Colors.blue[100],
+                        backgroundColor: color3,
                       );
                     }).toList(),
                   ),
@@ -271,21 +272,20 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                           snapshot.data!.reversed.take(5).toList();
 
                       return SizedBox(
-                        height:
-                            200, // Atur tinggi ListView sesuai kebutuhan Anda
+                        height: 200,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: latestReviews.length,
                           itemBuilder: (context, index) {
                             Review review = latestReviews[index];
                             return Container(
-                              width: 300, // Lebar container untuk setiap ulasan
+                              width: 300,
                               margin:
                                   const EdgeInsets.symmetric(horizontal: 8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[100],
+                              decoration: const BoxDecoration(
+                                color: color3,
                                 borderRadius:
-                                    const BorderRadius.all(Radius.circular(20)),
+                                    BorderRadius.all(Radius.circular(20)),
                               ),
                               child: ListTile(
                                 title: Column(
@@ -364,6 +364,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                         return Column(
                           children: snapshot.data!.map((room) {
                             return Card(
+                              color: color2,
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,19 +413,28 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                                   ),
                                   const SizedBox(height: 8),
                                   ListTile(
-                                    title: Text(room.type),
+                                    title: Text(
+                                      room.type,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
                                     subtitle: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                            'Fasilitas: ${room.facilities.join(', ')}'),
+                                          'Fasilitas: ${room.facilities.join(', ')}',
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Ketersediaan: ${room.available ? 'Tersedia' : 'Penuh'}',
                                           style: TextStyle(
+                                            fontWeight: FontWeight.w900,
                                             color: room.available
-                                                ? Colors.green
+                                                ? const Color.fromARGB(
+                                                    255, 0, 255, 8)
                                                 : Colors.red,
                                           ),
                                         ),
@@ -441,6 +451,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                                         Text(
                                           'Rp ${room.pricePerNight}',
                                           style: const TextStyle(
+                                            color: color1,
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),

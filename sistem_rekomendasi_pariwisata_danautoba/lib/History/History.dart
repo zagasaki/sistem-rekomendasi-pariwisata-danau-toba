@@ -101,9 +101,7 @@ class CustomCard extends StatelessWidget {
           ),
           child: ListTile(
             leading: Icon(
-              historyItem.historyType == 'hotel'
-                  ? Icons.hotel
-                  : Icons.restaurant,
+              _getIcon(historyItem.historyType),
               color: Colors.white,
             ),
             contentPadding: EdgeInsets.symmetric(
@@ -111,18 +109,14 @@ class CustomCard extends StatelessWidget {
               vertical: screenSize.height * 0.02,
             ),
             title: Text(
-              historyItem.historyType == 'hotel'
-                  ? historyItem.hotelName
-                  : historyItem.kulinerName,
+              _getTitle(historyItem),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
             subtitle: Text(
-              historyItem.historyType == 'hotel'
-                  ? historyItem.roomType
-                  : 'notes: ${historyItem.notes}',
+              _getSubtitle(historyItem),
               style: const TextStyle(
                 color: Colors.white70,
               ),
@@ -138,7 +132,7 @@ class CustomCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  historyItem.date.toString(),
+                  historyItem.date,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12.0,
@@ -150,5 +144,44 @@ class CustomCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _getIcon(String historyType) {
+    switch (historyType) {
+      case 'hotel':
+        return Icons.hotel;
+      case 'kuliner':
+        return Icons.restaurant;
+      case 'bus':
+        return Icons.directions_bus;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  String _getTitle(HistoryItem historyItem) {
+    switch (historyItem.historyType) {
+      case 'hotel':
+        return historyItem.hotelName;
+      case 'kuliner':
+        return historyItem.kulinerName;
+      case 'bus':
+        return historyItem.transportName;
+      default:
+        return 'Unknown';
+    }
+  }
+
+  String _getSubtitle(HistoryItem historyItem) {
+    switch (historyItem.historyType) {
+      case 'hotel':
+        return historyItem.roomType;
+      case 'kuliner':
+        return 'notes: ${historyItem.notes}';
+      case 'bus':
+        return 'Departure: ${historyItem.departTime} ${historyItem.departDate}\nFrom: ${historyItem.origin} To: ${historyItem.destination}';
+      default:
+        return 'Unknown';
+    }
   }
 }

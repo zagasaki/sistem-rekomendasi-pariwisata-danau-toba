@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelDetail.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'HotelModel.dart';
 
@@ -75,8 +79,41 @@ class _HotelScreenState extends State<HotelScreen> {
     }).toList();
   }
 
+  // Fungsi untuk memperbarui tag pengguna
+  Future<void> updateUserTags(String userId, List<String> newTags) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentReference userDoc = db.collection('users').doc(userId);
+
+    try {
+      DocumentSnapshot userSnapshot = await userDoc.get();
+
+      if (userSnapshot.exists) {
+        List<String> existingTags =
+            List<String>.from(userSnapshot.get('tags') ?? []);
+
+        // Gabungkan tags lama dengan tags baru, lalu ambil 5 tags teratas
+        Set<String> updatedTagsSet = {...existingTags, ...newTags};
+        List<String> updatedTags =
+            updatedTagsSet.toList().sublist(0, min(updatedTagsSet.length, 5));
+
+        // Perbarui data pengguna dengan tags baru yang sudah di-limit
+        await userDoc.set({'tags': updatedTags}, SetOptions(merge: true));
+      } else {
+        // Jika dokumen pengguna tidak ada, buat dokumen baru dengan tags dari hotel
+        await userDoc.set({'tags': newTags});
+      }
+
+      print('Tags updated successfully.');
+    } catch (e) {
+      print('Error updating tags: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Gantilah userId dengan id pengguna sebenarnya yang masuk
+    final userId = context.read<UserProvider>().uid;
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
@@ -131,7 +168,11 @@ class _HotelScreenState extends State<HotelScreen> {
                       final hotel =
                           filteredHotels(searchController.text)[index];
                       return InkWell(
-                        onTap: () {
+                        onTap: () async {
+                          // Perbarui tag pengguna
+                          await updateUserTags(userId!, hotel.tags);
+
+                          // Navigasi ke halaman detail hotel
                           Navigator.push(
                             context,
                             MaterialPageRoute(

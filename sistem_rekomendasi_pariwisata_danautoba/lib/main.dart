@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/SplashScreen.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/ResetPasswordProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
@@ -17,6 +19,7 @@ void main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => NavBarProv()),
     ChangeNotifierProvider(create: (_) => UserProvider()),
+    ChangeNotifierProvider(create: (_) => ResetPasswordProvider()),
   ], child: const MyApp()));
 }
 

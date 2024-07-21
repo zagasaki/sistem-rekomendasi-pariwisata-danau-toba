@@ -15,9 +15,6 @@ class FullScreenImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Full Screen Image'),
-      ),
       body: PhotoViewGallery.builder(
         itemCount: imageUrls.length,
         builder: (context, index) {

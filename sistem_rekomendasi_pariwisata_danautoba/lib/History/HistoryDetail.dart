@@ -41,7 +41,9 @@ class _HistoryDetailState extends State<HistoryDetail> {
     final username = context.read<UserProvider>().username;
     final itemId = historyItem.historyType == 'hotel'
         ? historyItem.hotelID
-        : historyItem.kulinerID;
+        : historyItem.historyType == 'kuliner'
+            ? historyItem.kulinerID
+            : historyItem.ticketID;
 
     Map<String, dynamic> reviewData = {
       'username': username,
@@ -51,7 +53,11 @@ class _HistoryDetailState extends State<HistoryDetail> {
     };
 
     DocumentReference itemDoc = FirebaseFirestore.instance
-        .collection(historyItem.historyType == 'hotel' ? 'hotels' : 'kuliner')
+        .collection(historyItem.historyType == 'hotel'
+            ? 'hotels'
+            : historyItem.historyType == 'kuliner'
+                ? 'kuliner'
+                : 'bus')
         .doc(itemId);
 
     await itemDoc.collection('reviews').add(reviewData).then((_) async {
@@ -101,7 +107,9 @@ class _HistoryDetailState extends State<HistoryDetail> {
         title: Text(
           widget.historyItem.historyType == 'hotel'
               ? widget.historyItem.hotelName
-              : widget.historyItem.kulinerName,
+              : widget.historyItem.historyType == 'kuliner'
+                  ? widget.historyItem.kulinerName
+                  : widget.historyItem.transportName,
           style: const TextStyle(color: Colors.white),
         ),
       ),
@@ -127,7 +135,9 @@ class _HistoryDetailState extends State<HistoryDetail> {
                 'Order Merchant ID',
                 widget.historyItem.historyType == 'hotel'
                     ? widget.historyItem.hotelID
-                    : widget.historyItem.kulinerID),
+                    : widget.historyItem.historyType == 'kuliner'
+                        ? widget.historyItem.kulinerID
+                        : widget.historyItem.ticketID),
             SizedBox(height: screenSize.height * 0.02),
             _buildDetailRow('Transaction Date', widget.historyItem.date),
             SizedBox(height: screenSize.height * 0.02),
@@ -140,6 +150,20 @@ class _HistoryDetailState extends State<HistoryDetail> {
               _buildDetailRow('Room type', widget.historyItem.roomType),
             if (widget.historyItem.historyType == 'kuliner')
               _buildDetailRow('Nama Kuliner', widget.historyItem.kulinerName),
+            if (widget.historyItem.historyType == 'bus')
+              _buildDetailRow(
+                  'Transport Name', widget.historyItem.transportName),
+            if (widget.historyItem.historyType == 'bus')
+              _buildDetailRow('Departure Date', widget.historyItem.departDate),
+            if (widget.historyItem.historyType == 'bus')
+              _buildDetailRow('Departure Time', widget.historyItem.departTime),
+            if (widget.historyItem.historyType == 'bus')
+              _buildDetailRow('Origin', widget.historyItem.origin),
+            if (widget.historyItem.historyType == 'bus')
+              _buildDetailRow('Destination', widget.historyItem.destination),
+            if (widget.historyItem.historyType == 'bus')
+              _buildDetailRow('Total Passengers',
+                  widget.historyItem.totalpassanger.toString()),
             SizedBox(height: screenSize.height * 0.02),
             _buildDetailRow('Price', 'Rp${widget.historyItem.price}'),
             SizedBox(height: screenSize.height * 0.02),
@@ -148,32 +172,34 @@ class _HistoryDetailState extends State<HistoryDetail> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.all(screenSize.width * 0.05),
-        child: FutureBuilder<bool>(
-          future: _isReviewed,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container();
-            }
-            final isReviewed = snapshot.data ?? false;
-            return ElevatedButton(
-              onPressed: isReviewed
-                  ? null
-                  : () {
-                      _navigateToReviewPage(context, widget.historyItem);
-                    },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: isReviewed ? Colors.grey : color2),
-              child: Text(
-                isReviewed ? "Ulasan Diberikan" : "Berikan Ulasan",
-                style: TextStyle(
-                    fontSize: screenSize.width * 0.045, color: color1),
+      bottomNavigationBar: widget.historyItem.historyType == 'bus'
+          ? null
+          : Padding(
+              padding: EdgeInsets.all(screenSize.width * 0.05),
+              child: FutureBuilder<bool>(
+                future: _isReviewed,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container();
+                  }
+                  final isReviewed = snapshot.data ?? false;
+                  return ElevatedButton(
+                    onPressed: isReviewed
+                        ? null
+                        : () {
+                            _navigateToReviewPage(context, widget.historyItem);
+                          },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: isReviewed ? Colors.grey : color2),
+                    child: Text(
+                      isReviewed ? "Ulasan Diberikan" : "Berikan Ulasan",
+                      style: TextStyle(
+                          fontSize: screenSize.width * 0.045, color: color1),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 
@@ -212,7 +238,7 @@ class _HistoryDetailState extends State<HistoryDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-                'Item: ${historyItem.historyType == 'hotel' ? historyItem.hotelName : historyItem.kulinerName}'),
+                'Item: ${historyItem.historyType == 'hotel' ? historyItem.hotelName : historyItem.historyType == 'kuliner' ? historyItem.kulinerName : historyItem.transportName}'),
             const SizedBox(height: 16),
             RatingBar.builder(
               initialRating: 0,
