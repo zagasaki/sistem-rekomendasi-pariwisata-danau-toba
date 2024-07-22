@@ -3,20 +3,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/BusModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/ShipModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
-class BusTicketDetailPage extends StatefulWidget {
-  final BusTicket ticket;
+class ShipTicketDetailPage extends StatefulWidget {
+  final ShipTicket ticket;
 
-  const BusTicketDetailPage({super.key, required this.ticket});
+  const ShipTicketDetailPage({super.key, required this.ticket});
 
   @override
-  _BusTicketDetailPageState createState() => _BusTicketDetailPageState();
+  _ShipTicketDetailPageState createState() => _ShipTicketDetailPageState();
 }
 
-class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
+class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
   String? _selectedDepartureTime;
   String? _selectedPaymentMethod;
   String? _selectedPaymentOption;
@@ -87,9 +87,8 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
             TextButton(
               child: const Text('Confirm'),
               onPressed: () {
-                // Send data to log booking and user history
                 FirebaseFirestore.instance
-                    .collection('bus_ticket_bookings')
+                    .collection('Ship_ticket_bookings')
                     .add({
                   'totalPassanger': _selectedNumberOfPeople,
                   'ticketID': widget.ticket.id,
@@ -115,7 +114,7 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
                     .collection('history')
                     .add({
                   'totalPassanger': _selectedNumberOfPeople,
-                  'historyType': 'bus',
+                  'historyType': 'Ship',
                   'ticketID': widget.ticket.id,
                   'transportName': widget.ticket.transportName,
                   'userId': user.uid,

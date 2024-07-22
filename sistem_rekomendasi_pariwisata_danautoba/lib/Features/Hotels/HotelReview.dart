@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 class HotelReview extends StatefulWidget {
   final String hotelId;
@@ -37,7 +40,13 @@ class _HotelReviewState extends State<HotelReview> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Semua Ulasan'),
+        centerTitle: true,
+        backgroundColor: color2,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Semua Ulasan',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           PopupMenuButton<String>(
             onSelected: (String value) {
@@ -95,13 +104,21 @@ class _HotelReviewState extends State<HotelReview> {
                 margin:
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: ListTile(
+                  leading: CircleAvatar(
+                    maxRadius: 25,
+                    backgroundImage: NetworkImage(context
+                            .read<UserProvider>()
+                            .profilephoto ??
+                        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAd5avdba8EiOZH8lmV3XshrXx7dKRZvhx-A&s'),
+                  ),
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 10.0, horizontal: 16.0),
                   title: Row(
                     children: [
                       Text(
                         review.username,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.star, color: Colors.yellow),

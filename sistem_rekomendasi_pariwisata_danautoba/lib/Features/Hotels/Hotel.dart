@@ -99,7 +99,6 @@ class _HotelScreenState extends State<HotelScreen> {
         // Perbarui data pengguna dengan tags baru yang sudah di-limit
         await userDoc.set({'tags': updatedTags}, SetOptions(merge: true));
       } else {
-        // Jika dokumen pengguna tidak ada, buat dokumen baru dengan tags dari hotel
         await userDoc.set({'tags': newTags});
       }
 
@@ -111,7 +110,6 @@ class _HotelScreenState extends State<HotelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Gantilah userId dengan id pengguna sebenarnya yang masuk
     final userId = context.read<UserProvider>().uid;
 
     return Scaffold(

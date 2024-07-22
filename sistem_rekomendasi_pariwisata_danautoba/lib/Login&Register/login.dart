@@ -77,7 +77,7 @@ class _LoginState extends State<Login> {
     try {
       GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        return; // Jika pengguna membatalkan login
+        return;
       }
       GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       AuthCredential credential = GoogleAuthProvider.credential(

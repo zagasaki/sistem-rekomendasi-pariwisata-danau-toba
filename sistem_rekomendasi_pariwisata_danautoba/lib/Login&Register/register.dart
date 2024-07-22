@@ -1,12 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/VerifyEmail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Register extends StatefulWidget {
@@ -24,7 +23,7 @@ class _RegisterState extends State<Register> {
   final TextEditingController _usernameController = TextEditingController();
   bool isRegistering = false;
 
-  Future<String?> _register() async {
+  Future<void> _register() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       isRegistering = true;
@@ -53,23 +52,10 @@ class _RegisterState extends State<Register> {
         'vacationtags': ["pemandangandanau"]
       });
 
-      await firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
+      await userCredential.user?.sendEmailVerification();
 
-      DocumentSnapshot userSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      userSnapshot.data() as Map<String, dynamic>;
-
-      setState(() {
-        userData = userSnapshot.data() as Map<String, dynamic>;
-      });
-
-      // Memperbarui data pengguna di UserProvider
-
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const MainPage()));
-
-      return 'Pendaftaran berhasil';
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const VerifyEmailPage()));
     } on FirebaseAuthException catch (error) {
       Fluttertoast.showToast(
           msg: error.message ?? 'Terjadi kesalahan', gravity: ToastGravity.TOP);
@@ -79,8 +65,6 @@ class _RegisterState extends State<Register> {
       });
       await prefs.setBool('login', true);
     }
-    print(prefs.get("login"));
-    return null;
   }
 
   @override
@@ -247,41 +231,6 @@ class _RegisterState extends State<Register> {
                         ],
                       ),
                     ),
-                    // Container(
-                    //   margin: const EdgeInsets.all(10),
-                    //   child: Column(
-                    //     children: [
-                    //       const Text(
-                    //         "Confirm Password",
-                    //         style: TextStyle(
-                    //             fontWeight: FontWeight.w900, fontSize: 15),
-                    //       ),
-                    //       SizedBox(
-                    //         width: 300,
-                    //         child: TextField(
-                    //           controller: _confirmPasswordController,
-                    //           obscureText: true,
-                    //           showCursor: true,
-                    //           decoration: InputDecoration(
-                    //             contentPadding:
-                    //                 const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                    //             filled: true,
-                    //             fillColor: Colors.grey.withOpacity(0.5),
-                    //             hintText: "min.8 Character",
-                    //             border: const OutlineInputBorder(
-                    //                 borderSide: BorderSide.none,
-                    //                 borderRadius:
-                    //                     BorderRadius.all(Radius.circular(10))),
-                    //             enabledBorder: const UnderlineInputBorder(
-                    //                 borderSide: BorderSide(color: Colors.green),
-                    //                 borderRadius:
-                    //                     BorderRadius.all(Radius.circular(10))),
-                    //           ),
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
                     ElevatedButton(
                       onPressed: _register,
                       child: const Text("Register"),
@@ -289,19 +238,6 @@ class _RegisterState extends State<Register> {
                   ],
                 ),
               ),
-              // Row(
-              //   children: [
-              //     Checkbox(
-              //       checkColor: Colors.green,
-              //       value: isChecked,
-              //       onChanged: _checkboxToggle,
-              //     ),
-              //     const Text(
-              //       "I agree with the terms of use and privacy policy",
-              //       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
-              //     )
-              //   ],
-              // ),
               Row(
                 children: [
                   const Text(

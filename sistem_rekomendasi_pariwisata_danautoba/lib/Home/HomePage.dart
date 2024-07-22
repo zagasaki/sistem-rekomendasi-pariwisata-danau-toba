@@ -8,6 +8,7 @@ import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/kuline
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Moments/Story.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/Ship.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/Vacations.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/VacationsDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/VacationsModel.dart';
@@ -128,7 +129,7 @@ class _HomePageState extends State<HomePage>
       case 'Ships':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const KapalPage()),
+          MaterialPageRoute(builder: (context) => const ShipTicketOrderPage()),
         );
         break;
       case 'Vacations':
@@ -376,8 +377,7 @@ class _HomePageState extends State<HomePage>
                   ),
                   SizedBox(height: screenSize.height * 0.03),
                   FutureBuilder<List<Destination>>(
-                    future: fetchRecommendedDestination(user
-                        .uid!), // Ambil data destinasi yang direkomendasikan
+                    future: fetchRecommendedDestination(user.uid!),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(
@@ -417,8 +417,8 @@ class _HomePageState extends State<HomePage>
                                         MaterialPageRoute(
                                           builder: (context) =>
                                               DestinationDetailPage(
-                                            destination: recommendedDestinations[
-                                                index], // Pass destination object to detail page
+                                            destination:
+                                                recommendedDestinations[index],
                                           ),
                                         ),
                                       );
@@ -487,39 +487,6 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// Placeholder pages for each feature
-class KapalPage extends StatelessWidget {
-  const KapalPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kapal Page'),
-      ),
-      body: const Center(
-        child: Text('Welcome to Kapal Page'),
-      ),
-    );
-  }
-}
-
-class BusPage extends StatelessWidget {
-  const BusPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bus Page'),
-      ),
-      body: const Center(
-        child: Text('Welcome to Bus Page'),
       ),
     );
   }

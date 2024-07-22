@@ -1,44 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/BusDetail.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/BusModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/ShipDetail.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/ShipModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart'; // Import halaman detail
 
-class BusTicketOrderPage extends StatefulWidget {
-  const BusTicketOrderPage({super.key});
+class ShipTicketOrderPage extends StatefulWidget {
+  const ShipTicketOrderPage({super.key});
 
   @override
-  _BusTicketOrderPageState createState() => _BusTicketOrderPageState();
+  _ShipTicketOrderPageState createState() => _ShipTicketOrderPageState();
 }
 
-class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
+class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
   String? _selectedOrigin;
   String? _selectedDestination;
-  List<BusTicket> _filteredBusTickets = [];
+  List<ShipTicket> _filteredShipTickets = [];
 
   final List<String> _origins = [
-    'Medan',
-    'Pematang Siantar',
-    'Parapat',
-    'Danau Toba',
-    'Berastagi',
-    'Samosir',
+    'Pelabuhan Ajibata',
+    'Pelabuhan Simanindo',
+    'Pelabuhan Tigaras',
+    'Pelabuhan Muara',
+    'Pelabuhan Bakti Raja',
+    'Pelabuhan Tongging',
   ];
   final List<String> _destinations = [
-    'Medan',
-    'Pematang Siantar',
-    'Parapat',
-    'Danau Toba',
-    'Berastagi',
-    'Samosir'
+    'Pelabuhan Ajibata',
+    'Pelabuhan Simanindo',
+    'Pelabuhan Tigaras',
+    'Pelabuhan Muara',
+    'Pelabuhan Bakti Raja',
+    'Pelabuhan Tongging',
   ];
 
-  Future<List<BusTicket>> fetchBusTickets() async {
+  Future<List<ShipTicket>> fetchShipTickets() async {
     try {
-      var snapshot = await FirebaseFirestore.instance.collection('buses').get();
+      var snapshot = await FirebaseFirestore.instance.collection('Ship').get();
       print('Fetched ${snapshot.docs.length} tickets');
       return snapshot.docs
-          .map((doc) => BusTicket.fromFirestore(doc.data(), doc.id))
+          .map((doc) => ShipTicket.fromFirestore(doc.data(), doc.id))
           .toList();
     } catch (e) {
       print('Error fetching tickets: $e');
@@ -46,11 +46,11 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
     }
   }
 
-  void _filterBusTickets() async {
+  void _filterShipTickets() async {
     if (_selectedOrigin != null && _selectedDestination != null) {
-      var allTickets = await fetchBusTickets();
+      var allTickets = await fetchShipTickets();
       setState(() {
-        _filteredBusTickets = allTickets
+        _filteredShipTickets = allTickets
             .where((ticket) =>
                 ticket.from.toLowerCase() == _selectedOrigin!.toLowerCase() &&
                 ticket.to.toLowerCase() == _selectedDestination!.toLowerCase())
@@ -60,7 +60,6 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
   }
 
   List<String> _getAvailableDestinations() {
-    // Filter destinations based on selected origin
     return _destinations.where((destination) {
       return _selectedOrigin == null || destination != _selectedOrigin;
     }).toList();
@@ -74,7 +73,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
         backgroundColor: color2,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          'Bus',
+          'Ship',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -103,7 +102,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                   setState(() {
                     _selectedOrigin = value;
                     _selectedDestination = null;
-                    _filterBusTickets();
+                    _filterShipTickets();
                   });
                 },
                 items: _origins
@@ -124,7 +123,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                 onChanged: (value) {
                   setState(() {
                     _selectedDestination = value;
-                    _filterBusTickets();
+                    _filterShipTickets();
                   });
                 },
                 items: _getAvailableDestinations()
@@ -140,7 +139,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                     decoration: const BoxDecoration(
                         color: color2,
                         borderRadius: BorderRadius.all(Radius.circular(20))),
-                    child: _filteredBusTickets.isEmpty
+                    child: _filteredShipTickets.isEmpty
                         ? const Center(
                             child: Padding(
                             padding: EdgeInsets.all(16.0),
@@ -154,9 +153,9 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                             child: ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _filteredBusTickets.length,
+                              itemCount: _filteredShipTickets.length,
                               itemBuilder: (context, index) {
-                                var ticket = _filteredBusTickets[index];
+                                var ticket = _filteredShipTickets[index];
                                 return Card(
                                   elevation: 5,
                                   margin:
@@ -215,7 +214,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) =>
-                                                      BusTicketDetailPage(
+                                                      ShipTicketDetailPage(
                                                     ticket: ticket,
                                                   ),
                                                 ),

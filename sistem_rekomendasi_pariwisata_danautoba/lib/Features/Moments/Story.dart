@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:uuid/uuid.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Moments/StoryList.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
@@ -24,12 +25,11 @@ class _StoryState extends State<Story> {
   Future<void> uploadStory(BuildContext context) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     String username = userProvider.username;
-    String profilePictureUrl = userProvider.profilephoto ??
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAd5avdba8EiOZH8lmV3XshrXx7dKRZvhx-A&s';
+    String profilePictureUrl = userProvider.profilephoto!;
     DateTime now = DateTime.now();
     String caption = captionController.text;
 
-    if (caption.isEmpty || images.isEmpty) {
+    if (caption.isEmpty && images.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('At least fill the caption')),
       );
@@ -37,6 +37,7 @@ class _StoryState extends State<Story> {
     }
 
     List<String> imageUrls = [];
+    var uuid = const Uuid();
 
     try {
       setState(() {
@@ -44,7 +45,7 @@ class _StoryState extends State<Story> {
       });
 
       for (File image in images) {
-        String fileName = '${now.millisecondsSinceEpoch}.jpg';
+        String fileName = '${uuid.v4()}.jpg';
         Reference storageReference =
             FirebaseStorage.instance.ref().child('stories/$fileName');
         UploadTask uploadTask = storageReference.putFile(image);
@@ -64,14 +65,12 @@ class _StoryState extends State<Story> {
       setState(() {
         captionController.clear();
         images.clear();
-        uploading =
-            false; // Selesai upload, sembunyikan CircularProgressIndicator
+        uploading = false;
       });
     } catch (e) {
       print('Error uploading story: $e');
-      // Handle error jika upload gagal
       setState(() {
-        uploading = false; // Jika error, pastikan untuk menonaktifkan uploading
+        uploading = false;
       });
     }
   }
@@ -181,8 +180,8 @@ class _StoryState extends State<Story> {
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       child: ElevatedButton(
                         onPressed: () => uploadStory(context),
-                        child: uploading // Tampilkan CircularProgressIndicator jika uploading true
-                            ? const LinearProgressIndicator() // atau bisa juga menggunakan widget kustom
+                        child: uploading
+                            ? const LinearProgressIndicator()
                             : const Text('Share Story'),
                       ),
                     ),

@@ -1,5 +1,5 @@
-// lib/models/bus_ticket.dart
-class BusTicket {
+// lib/models/Ship_ticket.dart
+class ShipTicket {
   final String id;
   final String transportName;
   final String from;
@@ -7,7 +7,7 @@ class BusTicket {
   final List<String> departTime;
   final int price;
 
-  BusTicket({
+  ShipTicket({
     required this.id,
     required this.transportName,
     required this.from,
@@ -16,12 +16,12 @@ class BusTicket {
     required this.price,
   });
 
-  factory BusTicket.fromFirestore(Map<String, dynamic> data, String id) {
+  factory ShipTicket.fromFirestore(Map<String, dynamic> data, String id) {
     // Konversi departTime dari List<dynamic> ke List<String>
     List<String> departTimeList =
         (data['departTime'] as List<dynamic>).map((e) => e.toString()).toList();
 
-    return BusTicket(
+    return ShipTicket(
       id: id,
       transportName: data['transportName'] ?? 'unknown',
       from: data['from'] ?? 'unknown',
