@@ -1,58 +1,359 @@
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:math';
 
-class MapsPage extends StatefulWidget {
-  const MapsPage({super.key});
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/VacationsDetail.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/VacationsModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
+
+class Vacations extends StatefulWidget {
+  const Vacations({super.key});
 
   @override
-  _MapsPageState createState() => _MapsPageState();
+  _VacationsState createState() => _VacationsState();
 }
 
-class _MapsPageState extends State<MapsPage> {
-  late GoogleMapController mapController;
+class _VacationsState extends State<Vacations> {
+  String searchQuery = '';
+  String filterCategory = 'All';
+  String filterTag = 'All';
 
-  final LatLng _center = const LatLng(-6.2088, 106.8456); // Koordinat Jakarta
+  Future<void> updateUserTags(String userId, List<String> newTags) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentReference userDoc = db.collection('users').doc(userId);
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    try {
+      DocumentSnapshot userSnapshot = await userDoc.get();
+
+      if (userSnapshot.exists) {
+        List<String> existingTags =
+            List<String>.from(userSnapshot.get('vacationtags') ?? []);
+
+        for (String tag in newTags) {
+          if (!existingTags.contains(tag)) {
+            if (existingTags.length >= 5) {
+              existingTags.removeAt(0);
+            }
+            existingTags.add(tag);
+          }
+        }
+
+        await userDoc
+            .set({'vacationtags': existingTags}, SetOptions(merge: true));
+      } else {
+        List<String> uniqueNewTags = newTags.toSet().toList();
+        List<String> initialTags = uniqueNewTags.length > 5
+            ? uniqueNewTags.sublist(0, 5)
+            : uniqueNewTags;
+        await userDoc.set({'vacationtags': initialTags});
+      }
+
+      print('Tags updated successfully.');
+    } catch (e) {
+      print('Error updating tags: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Peta Tempat Wisata'),
-        backgroundColor: Colors.green[700],
-      ),
-      body: GoogleMap(
-        onMapCreated: _onMapCreated,
-        initialCameraPosition: CameraPosition(
-          target: _center,
-          zoom: 11.0,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.arrow_back)),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.search),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                          hintText: 'Search destination...',
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            searchQuery = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  FilterButton(
+                    text: 'All',
+                    selected: filterTag == 'All',
+                    onTap: () {
+                      setState(() {
+                        filterTag = 'All';
+                      });
+                    },
+                  ),
+                  FilterButton(
+                    text: 'Pemandangan Danau',
+                    selected: filterTag == 'pemandangandanau',
+                    onTap: () {
+                      setState(() {
+                        filterTag = 'pemandangandanau';
+                      });
+                    },
+                  ),
+                  FilterButton(
+                    text: 'Air Terjun',
+                    selected: filterTag == 'airterjun',
+                    onTap: () {
+                      setState(() {
+                        filterTag = 'airterjun';
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: DestinationList(
+                  searchQuery: searchQuery,
+                  filterTag: filterTag,
+                ),
+              ),
+            ],
+          ),
         ),
-        markers: {
-          const Marker(
-            markerId: MarkerId('monas'),
-            position: LatLng(-6.1754, 106.8272),
-            infoWindow: InfoWindow(title: 'Monas', snippet: 'Monumen Nasional'),
+      ),
+    );
+  }
+}
+
+class FilterButton extends StatelessWidget {
+  final String text;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const FilterButton({
+    required this.text,
+    required this.selected,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? color2 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: selected ? Colors.white : Colors.black,
           ),
-          Marker(
-            markerId: const MarkerId('tmii'),
-            position: const LatLng(-6.3028, 106.8947),
-            infoWindow: const InfoWindow(
-                title: 'TMII', snippet: 'Taman Mini Indonesia Indah'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueAzure),
+        ),
+      ),
+    );
+  }
+}
+
+class DestinationList extends StatelessWidget {
+  final String searchQuery;
+  final String filterTag;
+
+  const DestinationList({
+    super.key,
+    required this.searchQuery,
+    required this.filterTag,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('destinations').snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        var destinations = snapshot.data!.docs
+            .map((doc) => Destination.fromDocSnapshot(
+                doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList();
+
+        if (searchQuery.isNotEmpty) {
+          destinations = destinations
+              .where((d) =>
+                  d.name.toLowerCase().contains(searchQuery.toLowerCase()))
+              .toList();
+        }
+
+        if (filterTag != 'All') {
+          destinations =
+              destinations.where((d) => d.tags.contains(filterTag)).toList();
+        }
+
+        return ListView.builder(
+          itemCount: destinations.length,
+          itemBuilder: (context, index) {
+            return DestinationCard(destination: destinations[index]);
+          },
+        );
+      },
+    );
+  }
+}
+
+class DestinationCard extends StatelessWidget {
+  final Destination destination;
+
+  Future<void> updateUserTags(String userId, List<String> newTags) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentReference userDoc = db.collection('users').doc(userId);
+
+    try {
+      DocumentSnapshot userSnapshot = await userDoc.get();
+
+      if (userSnapshot.exists) {
+        List<String> existingTags =
+            List<String>.from(userSnapshot.get('vacationtags') ?? []);
+
+        Set<String> updatedTagsSet = {...existingTags, ...newTags};
+        List<String> updatedTags =
+            updatedTagsSet.toList().sublist(0, min(updatedTagsSet.length, 5));
+
+        await userDoc
+            .set({'vacationtags': updatedTags}, SetOptions(merge: true));
+      } else {
+        await userDoc.set({'vacationtags': newTags});
+      }
+
+      print('Tags updated successfully.');
+    } catch (e) {
+      print('Error updating tags: $e');
+    }
+  }
+
+  const DestinationCard({super.key, required this.destination});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await updateUserTags(
+            context.read<UserProvider>().uid!, destination.tags);
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                DestinationDetailPage(destination: destination),
           ),
-          Marker(
-            markerId: const MarkerId('ragunan'),
-            position: const LatLng(-6.3086, 106.8279),
-            infoWindow: const InfoWindow(
-                title: 'Ragunan', snippet: 'Kebun Binatang Ragunan'),
-            icon:
-                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
-          ),
-        },
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  child: Image.network(
+                    destination.imageUrl,
+                    width: double.infinity,
+                    height: 250,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        width: double.infinity,
+                        height: 250,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: double.infinity,
+                        height: 250,
+                        color: Colors.grey.shade200,
+                        child: const Icon(
+                          Icons.error,
+                          color: Colors.red,
+                          size: 50,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  left: 10,
+                  right: 10,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Colors.black.withOpacity(0.4),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListTile(
+                          title: Text(
+                            destination.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Row(
+                            children: List.generate(5, (index) {
+                              return Icon(
+                                index < destination.rating
+                                    ? Icons.star
+                                    : Icons.star_border,
+                                color: Colors.yellow,
+                              );
+                            }),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -8,6 +8,9 @@ class HistoryItem {
   final int price;
   final String username;
   final bool reviewed;
+  final String virtualAccountNumber;
+  final bool pay;
+  final DateTime paymentDeadline;
 
   //HotelHistoryModel
   final String hotelID;
@@ -20,31 +23,60 @@ class HistoryItem {
   final String address;
   final String notes;
 
-  HistoryItem(
-      {required this.id,
-      required this.historyType,
-      required this.date,
-      required this.paymentMethod,
-      required this.price,
-      required this.username,
-      required this.reviewed,
+  //BusHistoryModel
+  final String ticketID;
+  final String departTime;
+  final String departDate;
+  final String destination;
+  final String origin;
+  final int totalpassanger;
+  final String transportName;
 
-      //HotelHistoryModel
-      required this.hotelID,
-      required this.hotelName,
-      required this.roomType,
+  HistoryItem({
+    required this.id,
+    required this.historyType,
+    required this.date,
+    required this.paymentMethod,
+    required this.price,
+    required this.username,
+    required this.reviewed,
+    required this.virtualAccountNumber,
+    required this.pay,
+    required this.paymentDeadline,
 
-      //KulinerHistoryModel
-      required this.kulinerID,
-      required this.kulinerName,
-      required this.address,
-      required this.notes});
+    //HotelHistoryModel
+    required this.hotelID,
+    required this.hotelName,
+    required this.roomType,
+
+    //KulinerHistoryModel
+    required this.kulinerID,
+    required this.kulinerName,
+    required this.address,
+    required this.notes,
+
+    //Bus&ShipHistoryModel
+    required this.ticketID,
+    required this.transportName,
+    required this.departDate,
+    required this.departTime,
+    required this.destination,
+    required this.origin,
+    required this.totalpassanger,
+  });
 
   factory HistoryItem.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
 
     if (data == null) {
       throw StateError('Missing data for HistoryItem: ${doc.id}');
+    }
+
+    DateTime paymentDeadline;
+    if (data['paymentDeadline'] is Timestamp) {
+      paymentDeadline = (data['paymentDeadline'] as Timestamp).toDate();
+    } else {
+      paymentDeadline = DateTime.now();
     }
 
     return HistoryItem(
@@ -55,6 +87,9 @@ class HistoryItem {
         price: data['price'] ?? 0,
         username: data['username'] ?? 'unknown username',
         reviewed: data['reviewed'] ?? false,
+        virtualAccountNumber: data['virtualAccountNumber'] ?? '',
+        pay: data['pay'] ?? false,
+        paymentDeadline: paymentDeadline,
 
         //HotelHistoryModel
         hotelID: data['hotelID'] ?? 'unknown hotel id',
@@ -65,6 +100,15 @@ class HistoryItem {
         kulinerID: data['kulinerID'] ?? 'unknown kuliner id',
         kulinerName: data['kulinerName'] ?? 'unknown kuliner name',
         address: data['address'] ?? 'unknown address',
-        notes: data['notes'] ?? 'unknown notes');
+        notes: data['notes'] ?? 'unknown notes',
+
+        //Bus&ShipHistoryModel
+        ticketID: data['ticketID'] ?? 'uknown ticketID',
+        departTime: data['departTime'] ?? 'unknown departTime',
+        departDate: data['departDate'] ?? 'unknown departDate',
+        destination: data['destination'] ?? 'unknown destination',
+        origin: data['origin'] ?? 'unknown origin',
+        totalpassanger: data['totalPassanger'] ?? 0,
+        transportName: data['transportName'] ?? 'unknown transportName');
   }
 }

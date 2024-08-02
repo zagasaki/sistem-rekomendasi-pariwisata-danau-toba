@@ -1,13 +1,14 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/ForgotPassword.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart'; // Sesuaikan path-nya
-import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart'; // Import halaman forgot password
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Login extends StatefulWidget {
@@ -48,14 +49,16 @@ class _LoginState extends State<Login> {
       );
 
       Fluttertoast.showToast(
-        msg: 'Login berhasil',
+        msg: 'Login successful',
         gravity: ToastGravity.TOP,
         backgroundColor: Colors.green,
         textColor: Colors.white,
       );
     } on FirebaseAuthException catch (error) {
+      _handleFirebaseAuthError(error);
+    } catch (error) {
       Fluttertoast.showToast(
-        msg: error.message ?? "Terjadi kesalahan saat login",
+        msg: 'An error occurred during login: $error',
         gravity: ToastGravity.TOP,
         backgroundColor: Colors.red,
         textColor: Colors.white,
@@ -66,6 +69,158 @@ class _LoginState extends State<Login> {
     print(prefs.get("login"));
   }
 
+  Future<void> _loginWithGoogle() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    GoogleSignIn googleSignIn = GoogleSignIn();
+
+    try {
+      GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        return;
+      }
+      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential =
+          await firebaseAuth.signInWithCredential(credential);
+      String uid = userCredential.user?.uid ?? "";
+      context.read<UserProvider>().setUid(uid);
+      await prefs.setString("uid", uid);
+
+      DocumentSnapshot userSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (!userSnapshot.exists) {
+        // Jika pengguna baru, simpan data pengguna ke Firestore
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'email': googleUser.email,
+          'name': googleUser.displayName,
+          'tags': ['parapat'],
+          'vacationtags': ['pemandangandanau'],
+          'phone': ''
+        });
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
+
+      Fluttertoast.showToast(
+        msg: 'Login successful with Google',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+    } on FirebaseAuthException catch (error) {
+      _handleFirebaseAuthError(error);
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: 'An error occurred during Google login: $error',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+  Future<void> _loginWithFacebook() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+      if (result.status == LoginStatus.success) {
+        final AccessToken accessToken = result.accessToken!;
+        AuthCredential credential =
+            FacebookAuthProvider.credential(accessToken.tokenString);
+
+        UserCredential userCredential =
+            await firebaseAuth.signInWithCredential(credential);
+        String uid = userCredential.user?.uid ?? "";
+        context.read<UserProvider>().setUid(uid);
+        await prefs.setString("uid", uid);
+
+        DocumentSnapshot userSnapshot =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        if (!userSnapshot.exists) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'email': userCredential.user?.email,
+            'name': userCredential.user?.displayName,
+          });
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainPage()),
+        );
+
+        Fluttertoast.showToast(
+          msg: 'Login successful with Facebook',
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Facebook login was cancelled',
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } on FirebaseAuthException catch (error) {
+      _handleFirebaseAuthError(error);
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: 'An error occurred during Facebook login: $error',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+  void _handleFirebaseAuthError(FirebaseAuthException error) {
+    String message;
+    switch (error.code) {
+      case 'invalid-email':
+        message = 'The email address is not valid.';
+        break;
+      case 'user-disabled':
+        message =
+            'The user corresponding to the given email has been disabled.';
+        break;
+      case 'user-not-found':
+        message = 'There is no user corresponding to the given email.';
+        break;
+      case 'wrong-password':
+        message = 'The password is invalid for the given email.';
+        break;
+      case 'account-exists-with-different-credential':
+        message =
+            'An account already exists with the same email address but different sign-in credentials.';
+        break;
+      case 'operation-not-allowed':
+        message = 'Signing in with this provider is not enabled.';
+        break;
+      case 'network-request-failed':
+        message = 'Network error, please try again later.';
+        break;
+      default:
+        message = 'An undefined error occurred: ${error.message}';
+    }
+    Fluttertoast.showToast(
+      msg: message,
+      gravity: ToastGravity.TOP,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,8 +229,8 @@ class _LoginState extends State<Login> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/LoginPage.png'),
-              fit: BoxFit.cover,
+              image: AssetImage('assets/login.jpg'),
+              fit: BoxFit.fill,
             ),
           ),
           padding: const EdgeInsets.all(20),
@@ -84,13 +239,7 @@ class _LoginState extends State<Login> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(height: 30),
-                const Text("Siap\nUntuk\nMulai?",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: "roboto")),
-                const SizedBox(height: 180),
+                const SizedBox(height: 200),
                 // FORM LOGIN
                 Container(
                   padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
@@ -100,7 +249,9 @@ class _LoginState extends State<Login> {
                       const Text(
                         "Email",
                         style: TextStyle(
-                            fontWeight: FontWeight.w900, fontSize: 15),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                            color: Colors.white),
                       ),
                       SizedBox(
                         width: 300,
@@ -114,7 +265,7 @@ class _LoginState extends State<Login> {
                                     BorderRadius.all(Radius.circular(10))),
                             focusColor: Colors.white,
                             filled: true,
-                            fillColor: Colors.grey.withOpacity(0.5),
+                            fillColor: Colors.grey.withOpacity(1),
                             hintText: "Email",
                             border: const OutlineInputBorder(
                               borderSide: BorderSide.none,
@@ -124,10 +275,10 @@ class _LoginState extends State<Login> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Masukkan alamat email';
+                              return 'Please enter your email address';
                             } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
                                 .hasMatch(value)) {
-                              return 'Masukkan alamat email yang valid';
+                              return 'Please enter a valid email address';
                             }
                             return null;
                           },
@@ -137,7 +288,9 @@ class _LoginState extends State<Login> {
                       // PASSWORD
                       const Text("Password",
                           style: TextStyle(
-                              fontWeight: FontWeight.w900, fontSize: 15)),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                              color: Colors.white)),
                       SizedBox(
                         width: 300,
                         child: TextFormField(
@@ -147,8 +300,8 @@ class _LoginState extends State<Login> {
                             contentPadding:
                                 const EdgeInsets.fromLTRB(10, 10, 10, 10),
                             filled: true,
-                            fillColor: Colors.grey.withOpacity(0.5),
-                            hintText: "Minimal 8 Karakter",
+                            fillColor: Colors.grey.withOpacity(1),
+                            hintText: "Minimum 8 characters",
                             border: const OutlineInputBorder(
                               borderSide: BorderSide.none,
                               borderRadius:
@@ -157,9 +310,9 @@ class _LoginState extends State<Login> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Masukkan kata sandi Anda';
+                              return 'Please enter your password';
                             } else if (value.length < 8) {
-                              return 'Kata sandi minimal harus 8 karakter';
+                              return 'Password must be at least 8 characters';
                             }
                             return null;
                           },
@@ -171,26 +324,76 @@ class _LoginState extends State<Login> {
                         onPressed: _login,
                         child: const Text("Login"),
                       ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Don't have an account?",
+                            style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Register(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Register",
+                              style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color.fromARGB(255, 0, 255, 8)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const ForgotPasswordScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text("Forgot Password?",
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            )),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _loginWithGoogle,
+                        icon: Image.asset(
+                          'assets/google_logo.png',
+                          height: 24,
+                          width: 24,
+                        ),
+                        label: const Text('Login with Google'),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _loginWithFacebook,
+                        icon: Image.asset(
+                          'assets/facebook_logo.png',
+                          height: 24,
+                          width: 24,
+                        ),
+                        label: const Text('Login with Facebook'),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Belum punya akun?"),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Register(),
-                          ),
-                        );
-                      },
-                      child: const Text("Daftar"),
-                    ),
-                  ],
                 ),
               ],
             ),

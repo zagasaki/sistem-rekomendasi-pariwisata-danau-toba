@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
                   )
                 : FadeTransition(
                     opacity: _fadeAnimation,
-                    child: const CircularProgressIndicator(),
+                    child: const LinearProgressIndicator(),
                   ),
           ),
         ],

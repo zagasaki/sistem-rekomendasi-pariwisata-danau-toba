@@ -1,12 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/VerifyEmail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
-import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Register extends StatefulWidget {
@@ -24,7 +23,7 @@ class _RegisterState extends State<Register> {
   final TextEditingController _usernameController = TextEditingController();
   bool isRegistering = false;
 
-  Future<String?> _register() async {
+  Future<void> _register() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       isRegistering = true;
@@ -49,25 +48,15 @@ class _RegisterState extends State<Register> {
         'username': _usernameController.text,
         'phone': _phoneController.text,
         'email': email,
+        'hoteltags': ["tuktuk"],
+        'vacationtags': ["pemandangandanau"],
+        'culinarytags': ["kuah"]
       });
 
-      await firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
+      await userCredential.user?.sendEmailVerification();
 
-      DocumentSnapshot userSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      userSnapshot.data() as Map<String, dynamic>;
-
-      setState(() {
-        userData = userSnapshot.data() as Map<String, dynamic>;
-      });
-
-      // Memperbarui data pengguna di UserProvider
-
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const MainPage()));
-
-      return 'Pendaftaran berhasil';
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const VerifyEmailPage()));
     } on FirebaseAuthException catch (error) {
       Fluttertoast.showToast(
           msg: error.message ?? 'Terjadi kesalahan', gravity: ToastGravity.TOP);
@@ -77,8 +66,6 @@ class _RegisterState extends State<Register> {
       });
       await prefs.setBool('login', true);
     }
-    print(prefs.get("login"));
-    return null;
   }
 
   @override
@@ -89,8 +76,8 @@ class _RegisterState extends State<Register> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/LoginPage.png'),
-              fit: BoxFit.cover,
+              image: AssetImage('assets/login.jpg'),
+              fit: BoxFit.fill,
             ),
           ),
           padding: const EdgeInsets.all(20),
@@ -98,24 +85,21 @@ class _RegisterState extends State<Register> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text("Ready To\nGo?Let's\nGooo",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: "roboto")),
               Container(
                 padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      margin: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.fromLTRB(10, 200, 10, 10),
                       child: Column(
                         children: [
                           const Text(
                             "Username",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -126,7 +110,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "Username",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -149,7 +133,9 @@ class _RegisterState extends State<Register> {
                           const Text(
                             "Email",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -160,7 +146,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "Email",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -183,7 +169,9 @@ class _RegisterState extends State<Register> {
                           const Text(
                             "No Hp",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -194,7 +182,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "No Hp",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -217,7 +205,9 @@ class _RegisterState extends State<Register> {
                           const Text(
                             "Password",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -229,7 +219,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "Min.8 Charactere",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -245,41 +235,6 @@ class _RegisterState extends State<Register> {
                         ],
                       ),
                     ),
-                    // Container(
-                    //   margin: const EdgeInsets.all(10),
-                    //   child: Column(
-                    //     children: [
-                    //       const Text(
-                    //         "Confirm Password",
-                    //         style: TextStyle(
-                    //             fontWeight: FontWeight.w900, fontSize: 15),
-                    //       ),
-                    //       SizedBox(
-                    //         width: 300,
-                    //         child: TextField(
-                    //           controller: _confirmPasswordController,
-                    //           obscureText: true,
-                    //           showCursor: true,
-                    //           decoration: InputDecoration(
-                    //             contentPadding:
-                    //                 const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                    //             filled: true,
-                    //             fillColor: Colors.grey.withOpacity(0.5),
-                    //             hintText: "min.8 Character",
-                    //             border: const OutlineInputBorder(
-                    //                 borderSide: BorderSide.none,
-                    //                 borderRadius:
-                    //                     BorderRadius.all(Radius.circular(10))),
-                    //             enabledBorder: const UnderlineInputBorder(
-                    //                 borderSide: BorderSide(color: Colors.green),
-                    //                 borderRadius:
-                    //                     BorderRadius.all(Radius.circular(10))),
-                    //           ),
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
                     ElevatedButton(
                       onPressed: _register,
                       child: const Text("Register"),
@@ -287,24 +242,13 @@ class _RegisterState extends State<Register> {
                   ],
                 ),
               ),
-              // Row(
-              //   children: [
-              //     Checkbox(
-              //       checkColor: Colors.green,
-              //       value: isChecked,
-              //       onChanged: _checkboxToggle,
-              //     ),
-              //     const Text(
-              //       "I agree with the terms of use and privacy policy",
-              //       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
-              //     )
-              //   ],
-              // ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
                     "Have Any Account?",
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w900, color: Colors.white),
                   ),
                   TextButton(
                     onPressed: () {
@@ -314,7 +258,9 @@ class _RegisterState extends State<Register> {
                       );
                     },
                     child: const Text("Sign In",
-                        style: TextStyle(fontWeight: FontWeight.w900)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color.fromARGB(255, 0, 255, 8))),
                   ),
                 ],
               ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/login.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Profile/ChangePassword.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Profile/EditProfile.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/NavBarProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
@@ -16,14 +18,12 @@ class _ProfileState extends State<Profile> {
   void _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Hapus semua data yang terkait dengan status login
     await prefs.remove('uid');
     context.read<NavBarProv>().logout();
 
     prefs.setBool("login", false);
     print(prefs.get("login"));
 
-    // Navigasi kembali ke halaman login atau halaman splash screen
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -43,11 +43,14 @@ class _ProfileState extends State<Profile> {
           child: Column(
             children: [
               CircleAvatar(
+                backgroundColor: Colors.grey,
                 radius: 50,
                 backgroundImage: NetworkImage(
-                  user.profilephoto ??
-                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAd5avdba8EiOZH8lmV3XshrXx7dKRZvhx-A&s', // Replace with actual image URL
+                  user.profilephoto ?? '',
                 ),
+                child: user.profilephoto == null
+                    ? const Icon(Icons.person, size: 80)
+                    : null,
               ),
               const SizedBox(height: 16),
               Text(
@@ -76,7 +79,10 @@ class _ProfileState extends State<Profile> {
                 title: const Text('Edit Profile'),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
-                  // Handle edit profile
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const EditProfilePage()));
                 },
               ),
               ListTile(
@@ -84,7 +90,10 @@ class _ProfileState extends State<Profile> {
                 title: const Text('Change Password'),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
-                  // Handle change password
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Changepassword()));
                 },
               ),
               ListTile(

@@ -1,9 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/KulinerModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/VirtualAccountPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
 class KulinerPayment extends StatefulWidget {
   final KulinerModel kuliner;
@@ -23,8 +27,9 @@ class _KulinerPaymentState extends State<KulinerPayment> {
       TextEditingController();
   final TextEditingController _noHpController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  String _selectedPaymentMethod = 'Cash';
+  String _selectedPaymentMethod = 'Transfer Bank';
   String _selectedEWallet = 'Gopay';
+  String _selectedBankTransfer = 'BCA';
   int _quantity = 1;
 
   void _showAddressDialog() {
@@ -45,13 +50,13 @@ class _KulinerPaymentState extends State<KulinerPayment> {
                   decoration: const InputDecoration(labelText: 'Kecamatan'),
                 ),
                 TextField(
-                  controller: _detailBangunanController,
-                  decoration: const InputDecoration(
-                      labelText: 'Detail Bangunan (No Unit, Warna)'),
-                ),
+                    controller: _detailBangunanController,
+                    decoration: const InputDecoration(
+                        labelText:
+                            'Building Details (Unit Number, Building Color)')),
                 TextField(
                   controller: _noHpController,
-                  decoration: const InputDecoration(labelText: 'No HP'),
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
                 ),
               ],
             ),
@@ -110,9 +115,49 @@ class _KulinerPaymentState extends State<KulinerPayment> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _buyItem();
+              onPressed: () async {
+                String virtualAccountNumber = _generateVirtualAccountNumber();
+                final user = context.read<UserProvider>();
+                DateTime paymentDeadline =
+                    DateTime.now().add(const Duration(hours: 1));
+                String address = _completeAddressController.text;
+                String notes = _notesController.text;
+
+                Map<String, dynamic> historyData = {
+                  'historyType': 'kuliner',
+                  'date': DateFormat("dd-MM-yyyy HH:mm")
+                      .format(DateTime.now())
+                      .toString(),
+                  'paymentMethod': _selectedPaymentMethod,
+                  'price': widget.kuliner.price * _quantity,
+                  'username': user.username,
+                  'kulinerID': widget.kuliner.id,
+                  'kulinerName': widget.kuliner.name,
+                  'quantity': _quantity,
+                  'address': address,
+                  'notes': notes,
+                  'pay': false,
+                  'virtualAccountNumber': virtualAccountNumber,
+                  'paymentDeadline': paymentDeadline,
+                };
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection('history')
+                    .add(historyData)
+                    .then((historyDoc) {
+                  print('Added to history: ${historyDoc.id}');
+                }).catchError((error) {
+                  print('Error adding to history: $error');
+                });
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VirtualAccountPage(
+                      virtualAccountNumber: virtualAccountNumber,
+                    ),
+                  ),
+                );
               },
               child: const Text('Confirm'),
             ),
@@ -135,51 +180,35 @@ class _KulinerPaymentState extends State<KulinerPayment> {
     await FirebaseFirestore.instance
         .collection('kuliner_log')
         .add(purchaseData)
-        .then((purchaseDoc) {
-      _addToHistory(purchaseDoc.id);
-    }).catchError((error) {
+        .then((purchaseDoc) {})
+        .catchError((error) {
       print('Error buying item: $error');
     });
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
-  void _addToHistory(String purchaseId) async {
-    final user = context.read<UserProvider>();
-
-    String address = _completeAddressController.text;
-    String notes = _notesController.text;
-
-    Map<String, dynamic> historyData = {
-      'historyType': 'kuliner',
-      'date': DateFormat("dd-MM-yyyy HH:mm").format(DateTime.now()).toString(),
-      'paymentMethod': _selectedPaymentMethod,
-      'price': widget.kuliner.price * _quantity,
-      'username': user.username,
-      'kulinerID': widget.kuliner.id,
-      'kulinerName': widget.kuliner.name,
-      'quantity': _quantity,
-      'address': address,
-      'notes': notes,
-    };
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('history')
-        .add(historyData)
-        .then((historyDoc) {
-      print('Added to history: ${historyDoc.id}');
-    }).catchError((error) {
-      print('Error adding to history: $error');
-    });
+  String _generateVirtualAccountNumber() {
+    final random = Random();
+    final accountNumber =
+        List.generate(15, (index) => random.nextInt(10)).join();
+    return accountNumber;
   }
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     int totalPrice = widget.kuliner.price * _quantity;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kuliner Payment'),
+        iconTheme: const IconThemeData(color: color1),
+        centerTitle: true,
+        backgroundColor: color2,
+        title: const Text(
+          'Payment',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -199,7 +228,7 @@ class _KulinerPaymentState extends State<KulinerPayment> {
               leading: Image.network(widget.kuliner.imageUrl,
                   width: 50, height: 50, fit: BoxFit.cover),
               title: Text(widget.kuliner.name),
-              subtitle: Text('Rp ${widget.kuliner.price}'),
+              subtitle: Text(currencyFormatter.format(widget.kuliner.price)),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -239,7 +268,7 @@ class _KulinerPaymentState extends State<KulinerPayment> {
                 labelText: 'Payment Method',
               ),
               value: _selectedPaymentMethod,
-              items: ['Cash', 'E-Wallet', 'Credit Card']
+              items: ['Transfer Bank', 'E-Wallet']
                   .map((method) => DropdownMenuItem<String>(
                         value: method,
                         child: Text(method),
@@ -269,19 +298,41 @@ class _KulinerPaymentState extends State<KulinerPayment> {
                   });
                 },
               ),
+            if (_selectedPaymentMethod == 'Transfer Bank')
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Transfer Bank',
+                ),
+                value: _selectedBankTransfer,
+                items: ['BCA', 'BRI', 'BNI', 'Mandiri']
+                    .map((ewallet) => DropdownMenuItem<String>(
+                          value: ewallet,
+                          child: Text(ewallet),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedBankTransfer = value!;
+                  });
+                },
+              ),
           ],
         ),
       ),
       bottomNavigationBar: BottomAppBar(
+        color: color2,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total: Rp $totalPrice'),
+              Text(
+                'Total: ${currencyFormatter.format(totalPrice)}',
+                style: const TextStyle(color: Colors.white),
+              ),
               ElevatedButton(
                 onPressed: _confirmPurchase,
-                child: const Text('Beli'),
+                child: const Text('Buy'),
               ),
             ],
           ),

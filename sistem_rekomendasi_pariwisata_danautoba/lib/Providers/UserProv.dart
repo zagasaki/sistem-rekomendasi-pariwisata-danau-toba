@@ -28,5 +28,11 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void initialize() {}
+  void updateProfileData(
+      String newUsername, String newPhone, String? newProfilePhoto) {
+    username = newUsername;
+    phone = newPhone;
+    profilephoto = newProfilePhoto;
+    notifyListeners();
+  }
 }

@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/VirtualAccountPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
@@ -20,10 +23,10 @@ class _BookingPageState extends State<BookingPage> {
   late DateTime _checkInDate;
   late DateTime _checkOutDate;
   late int price;
-  String _selectedPaymentMethod = 'Transfer Bank'; // Default payment method
-  String _selectedBank = 'BCA'; // Default bank for Transfer Bank option
+  String _selectedPaymentMethod = 'Transfer Bank';
+  String _selectedBank = 'BCA';
   String _creditCardNumber = '';
-  String _selectedEwallet = "OVO"; // Variable to store credit card number
+  String _selectedEwallet = "OVO";
 
   @override
   void initState() {
@@ -74,7 +77,26 @@ class _BookingPageState extends State<BookingPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Konfirmasi Booking'),
-        content: const Text('Anda yakin ingin melakukan booking?'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Hotel: ${widget.hotel.name}'),
+            Text('Kamar: ${widget.room.type}'),
+            Text(
+                'Check-in: ${DateFormat('dd MMMM yyyy').format(_checkInDate)}'),
+            Text(
+                'Check-out: ${DateFormat('dd MMMM yyyy').format(_checkOutDate)}'),
+            Text(
+                'Harga: ${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(price)}'),
+            Text('Metode Pembayaran: $_selectedPaymentMethod'),
+            if (_selectedPaymentMethod == 'Kartu Kredit')
+              Text('Nomor Kartu Kredit: $_creditCardNumber'),
+            if (_selectedPaymentMethod == 'Transfer Bank')
+              Text('Bank: $_selectedBank'),
+            const Text('Anda yakin ingin melakukan booking?')
+          ],
+        ),
         actions: <Widget>[
           TextButton(
             child: const Text('Batal'),
@@ -96,6 +118,8 @@ class _BookingPageState extends State<BookingPage> {
 
   void _prosesBooking() {
     final userId = context.read<UserProvider>().uid;
+    DateTime paymentDeadline = DateTime.now().add(const Duration(hours: 1));
+    String virtualAccountNumber = _generateVirtualAccountNumber();
 
     Map<String, dynamic> bookingData = {
       'roomId': widget.room.id,
@@ -107,6 +131,7 @@ class _BookingPageState extends State<BookingPage> {
       'bookingDate': DateFormat("dd-MM-yyyy HH:mm").format(DateTime.now()),
       'paymentMethod': _selectedPaymentMethod,
       'user': userId,
+      'virtualAccountNumber': virtualAccountNumber,
     };
 
     if (_selectedPaymentMethod == 'Kartu Kredit') {
@@ -129,9 +154,11 @@ class _BookingPageState extends State<BookingPage> {
         'hotelID': widget.hotel.id,
         'hotelName': widget.hotel.name,
         'roomType': widget.room.type,
+        'virtualAccountNumber': virtualAccountNumber,
+        'pay': false,
+        'paymentDeadline': paymentDeadline,
       };
 
-      // Menambahkan data history ke koleksi 'history' di dalam dokumen user
       FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -142,12 +169,26 @@ class _BookingPageState extends State<BookingPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Booking Berhasil'),
-            content: const Text('Terima kasih! Booking Anda telah berhasil.'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Terima kasih! Booking Anda telah berhasil.'),
+                const SizedBox(height: 10),
+                Text('Virtual Account Number: $virtualAccountNumber'),
+              ],
+            ),
             actions: <Widget>[
               TextButton(
                 child: const Text('OK'),
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VirtualAccountPage(
+                        virtualAccountNumber: virtualAccountNumber,
+                      ),
+                    ),
+                  );
                 },
               ),
             ],
@@ -159,6 +200,13 @@ class _BookingPageState extends State<BookingPage> {
     }).catchError((error) {
       _showErrorDialog('Error', 'Gagal melakukan booking: $error');
     });
+  }
+
+  String _generateVirtualAccountNumber() {
+    final random = Random();
+    final accountNumber =
+        List.generate(15, (index) => random.nextInt(10)).join();
+    return accountNumber;
   }
 
   void _showErrorDialog(String title, String content) {
@@ -183,6 +231,8 @@ class _BookingPageState extends State<BookingPage> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
 
     return Scaffold(
       backgroundColor: color1,
@@ -197,18 +247,18 @@ class _BookingPageState extends State<BookingPage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.04), // 4% of screen width
+          padding: EdgeInsets.all(screenWidth * 0.04),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Detail Kamar:',
                 style: TextStyle(
-                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontSize: screenWidth * 0.05,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: screenWidth * 0.02), // 2% of screen width
+              SizedBox(height: screenWidth * 0.02),
               Card(
                 margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
                 child: Column(
@@ -216,7 +266,7 @@ class _BookingPageState extends State<BookingPage> {
                     if (widget.room.imageUrl.isNotEmpty)
                       Image.network(
                         widget.room.imageUrl,
-                        height: screenWidth * 0.5, // 50% of screen width
+                        height: screenWidth * 0.5,
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
@@ -227,12 +277,10 @@ class _BookingPageState extends State<BookingPage> {
                         children: [
                           Text(
                               'Harga per malam: Rp ${widget.room.pricePerNight}'),
-                          SizedBox(
-                              height: screenWidth * 0.01), // 1% of screen width
+                          SizedBox(height: screenWidth * 0.01),
                           Text(
                               'Fasilitas: ${widget.room.facilities.join(', ')}'),
-                          SizedBox(
-                              height: screenWidth * 0.01), // 1% of screen width
+                          SizedBox(height: screenWidth * 0.01),
                           Text(
                             'Ketersediaan: ${widget.room.available ? 'Tersedia' : 'Penuh'}',
                             style: TextStyle(
@@ -248,56 +296,97 @@ class _BookingPageState extends State<BookingPage> {
                 ),
               ),
               SizedBox(height: screenWidth * 0.04), // 4% of screen width
-              Text(
-                'Tanggal Check-in:',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.05, // 5% of screen width
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        'Check-in:',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.05, // 5% of screen width
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(
+                          height: screenWidth * 0.02), // 2% of screen width
+                      ElevatedButton(
+                        onPressed: () =>
+                            _selectDate(context, _selectCheckInDate),
+                        child: Text(
+                            DateFormat('dd MMMM yyyy').format(_checkInDate)),
+                      ),
+                      SizedBox(
+                          height: screenWidth * 0.04), // 4% of screen width
+                    ],
+                  ),
+                  const Icon(Icons.keyboard_double_arrow_right_rounded),
+                  Column(
+                    children: [
+                      Text(
+                        'Check-out:',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.05, // 5% of screen width
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(
+                          height: screenWidth * 0.02), // 2% of screen width
+                      ElevatedButton(
+                        onPressed: () =>
+                            _selectDate(context, _selectCheckOutDate),
+                        child: Text(
+                            DateFormat('dd MMMM yyyy').format(_checkOutDate)),
+                      ),
+                      SizedBox(
+                          height: screenWidth * 0.04), // 4% of screen width
+                    ],
+                  )
+                ],
               ),
-              SizedBox(height: screenWidth * 0.02), // 2% of screen width
-              ElevatedButton(
-                onPressed: () => _selectDate(context, _selectCheckInDate),
-                child: Text(DateFormat('dd MMMM yyyy').format(_checkInDate)),
-              ),
-              SizedBox(height: screenWidth * 0.04), // 4% of screen width
-              Text(
-                'Tanggal Check-out:',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.05, // 5% of screen width
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: screenWidth * 0.02), // 2% of screen width
-              ElevatedButton(
-                onPressed: () => _selectDate(context, _selectCheckOutDate),
-                child: Text(DateFormat('dd MMMM yyyy').format(_checkOutDate)),
-              ),
-              SizedBox(height: screenWidth * 0.04), // 4% of screen width
+
               Text(
                 'Metode Pembayaran:',
                 style: TextStyle(
-                  fontSize: screenWidth * 0.05, // 5% of screen width
+                  fontSize: screenWidth * 0.05,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: screenWidth * 0.02), // 2% of screen width
+              SizedBox(height: screenWidth * 0.02),
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
                 onChanged: (value) {
                   setState(() {
                     _selectedPaymentMethod = value!;
-                    // Reset selected bank and credit card number when changing payment method
                     _selectedBank = 'BCA';
                     _creditCardNumber = '';
-                    _selectedEwallet = "OVO";
+                    _selectedEwallet = 'OVO';
                   });
                 },
                 items: <String>['Transfer Bank', 'Kartu Kredit', 'E-Wallet']
                     .map((String value) {
+                  IconData icon;
+                  switch (value) {
+                    case 'Transfer Bank':
+                      icon = Icons.account_balance;
+                      break;
+                    case 'Kartu Kredit':
+                      icon = Icons.credit_card;
+                      break;
+                    case 'E-Wallet':
+                      icon = Icons.account_balance_wallet;
+                      break;
+                    default:
+                      icon = Icons.payment;
+                  }
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value),
+                    child: Row(
+                      children: [
+                        Icon(icon, color: Colors.grey),
+                        const SizedBox(width: 10),
+                        Text(value),
+                      ],
+                    ),
                   );
                 }).toList(),
               ),
@@ -323,9 +412,32 @@ class _BookingPageState extends State<BookingPage> {
                       },
                       items: <String>['BCA', 'BRI', 'BNI', 'Mandiri']
                           .map((String bank) {
+                        String imagePath;
+                        switch (bank) {
+                          case 'BCA':
+                            imagePath = 'assets/bca_logo.png';
+                            break;
+                          case 'BRI':
+                            imagePath = 'assets/bri_logo.png';
+                            break;
+                          case 'BNI':
+                            imagePath = 'assets/bni_logo.png';
+                            break;
+                          case 'Mandiri':
+                            imagePath = 'assets/mandiri_logo.png';
+                            break;
+                          default:
+                            imagePath = 'assets/bca_logo.png';
+                        }
                         return DropdownMenuItem<String>(
                           value: bank,
-                          child: Text(bank),
+                          child: Row(
+                            children: [
+                              Image.asset(imagePath, width: 20, height: 20),
+                              const SizedBox(width: 10),
+                              Text(bank),
+                            ],
+                          ),
                         );
                       }).toList(),
                     ),
@@ -353,9 +465,32 @@ class _BookingPageState extends State<BookingPage> {
                       },
                       items: <String>['DANA', 'OVO', 'Doku', 'Gopay']
                           .map((String eWallet) {
+                        String imagePath;
+                        switch (eWallet) {
+                          case 'DANA':
+                            imagePath = 'assets/dana_logo.jpg';
+                            break;
+                          case 'OVO':
+                            imagePath = 'assets/ovo_logo.jpg';
+                            break;
+                          case 'Doku':
+                            imagePath = 'assets/doku_logo.png';
+                            break;
+                          case 'Gopay':
+                            imagePath = 'assets/gopay_logo.jpg';
+                            break;
+                          default:
+                            imagePath = 'assets/dana_logo.jpg';
+                        }
                         return DropdownMenuItem<String>(
                           value: eWallet,
-                          child: Text(eWallet),
+                          child: Row(
+                            children: [
+                              Image.asset(imagePath, width: 20, height: 20),
+                              const SizedBox(width: 10),
+                              Text(eWallet),
+                            ],
+                          ),
                         );
                       }).toList(),
                     ),
@@ -402,7 +537,7 @@ class _BookingPageState extends State<BookingPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Rp $price',
+              currencyFormatter.format(price),
               style: TextStyle(
                 fontSize: screenWidth * 0.06, // 6% of screen width
                 fontWeight: FontWeight.bold,

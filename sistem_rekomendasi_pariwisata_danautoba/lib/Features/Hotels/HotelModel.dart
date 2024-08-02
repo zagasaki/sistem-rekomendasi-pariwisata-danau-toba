@@ -46,6 +46,7 @@ class Hotel {
   final String contact;
   final int rating;
   final List<String> facilities;
+  final List<String> tags; // Tambahkan properti tags
 
   Hotel({
     required this.id,
@@ -57,6 +58,7 @@ class Hotel {
     required this.contact,
     required this.rating,
     required this.facilities,
+    required this.tags, // Inisialisasi tags
   });
 
   Map<String, dynamic> toMap() {
@@ -69,6 +71,7 @@ class Hotel {
       'contact': contact,
       'rating': rating,
       'facilities': facilities,
+      'tags': tags,
     };
   }
 
@@ -81,28 +84,28 @@ class Hotel {
         address = doc.data()?['address'] ?? '',
         contact = doc.data()?['contact'] ?? '',
         rating = doc.data()?['rating'] ?? 0,
-        facilities = List<String>.from(doc.data()?['facilities'] ?? []);
+        facilities = List<String>.from(doc.data()?['facilities'] ?? []),
+        tags = List<String>.from(doc.data()?['tags'] ?? []);
 }
 
 class Review {
   final double rating;
   final String deskripsi;
   final DateTime tanggal;
-  final String username;
+  final String uid;
 
   Review(
       {required this.rating,
       required this.deskripsi,
       required this.tanggal,
-      required this.username});
+      required this.uid});
 
   factory Review.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Review(
-      rating: data['rating'] ?? 'unknown rating',
-      deskripsi: data['deskripsi'] ?? 'unknown desc',
-      tanggal: (data['tanggal'] as Timestamp).toDate(),
-      username: data['username'] ?? 'anynomous',
-    );
+        rating: data['rating'] ?? 'unknown rating',
+        deskripsi: data['deskripsi'] ?? 'unknown desc',
+        tanggal: (data['tanggal'] as Timestamp).toDate(),
+        uid: data['uid'] ?? 'unknown uid');
   }
 }

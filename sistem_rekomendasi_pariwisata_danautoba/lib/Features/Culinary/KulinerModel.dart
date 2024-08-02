@@ -7,6 +7,8 @@ class KulinerModel {
   final int price;
   final int rating;
   final String deskripsi;
+  final String gmaps;
+  final List<String> tags;
 
   KulinerModel(
       {required this.id,
@@ -14,7 +16,9 @@ class KulinerModel {
       required this.imageUrl,
       required this.price,
       required this.rating,
-      required this.deskripsi});
+      required this.deskripsi,
+      required this.gmaps,
+      required this.tags});
 
   factory KulinerModel.fromDocSnapshot(
       DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -25,7 +29,9 @@ class KulinerModel {
         imageUrl: data['imageUrl'] ?? '',
         price: data['price'] ?? 0,
         rating: data['rating'] ?? 0,
-        deskripsi: data['deskripsi'] ?? 'no desc');
+        deskripsi: data['deskripsi'] ?? 'no desc',
+        gmaps: data['gmaps'] ?? 'https://maps.app.goo.gl/iEm6kGDbzT3jy1vj7',
+        tags: List<String>.from(data['tags'] ?? ['']));
   }
 }
 
@@ -33,22 +39,23 @@ class Review {
   final double rating;
   final String deskripsi;
   final DateTime tanggal;
-  final String username;
+  final String uid;
 
   Review({
     required this.rating,
     required this.deskripsi,
     required this.tanggal,
-    required this.username,
+    required this.uid,
   });
 
-  factory Review.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  factory Review.fromFirestore(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    Map<String, dynamic> data = doc.data();
     return Review(
       rating: data['rating']?.toDouble() ?? 0.0,
       deskripsi: data['deskripsi'] ?? 'unknown desc',
       tanggal: (data['tanggal'] as Timestamp).toDate(),
-      username: data['username'] ?? 'anonymous',
+      uid: data['uid'] ?? '',
     );
   }
 }

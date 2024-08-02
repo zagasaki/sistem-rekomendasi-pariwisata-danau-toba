@@ -14,6 +14,8 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
+  String selectedType = 'All';
+
   @override
   Widget build(BuildContext context) {
     final userId = context.read<UserProvider>().uid;
@@ -21,47 +23,151 @@ class _HistoryPageState extends State<HistoryPage> {
     return Scaffold(
       backgroundColor: color1,
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: color2,
-        title: const Text(
-          'History',
-          style: TextStyle(color: Colors.white),
-        ),
+        automaticallyImplyLeading: false,
+        title: const Text('History'),
+        backgroundColor: color1,
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('history')
-            .orderBy('date', descending: true)
-            .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                FilterButton(
+                  text: 'All',
+                  selected: selectedType == 'All',
+                  onTap: () {
+                    setState(() {
+                      selectedType = 'All';
+                    });
+                  },
+                ),
+                FilterButton(
+                  text: 'Hotel',
+                  selected: selectedType == 'hotel',
+                  onTap: () {
+                    setState(() {
+                      selectedType = 'hotel';
+                    });
+                  },
+                ),
+                FilterButton(
+                  text: 'Kuliner',
+                  selected: selectedType == 'kuliner',
+                  onTap: () {
+                    setState(() {
+                      selectedType = 'kuliner';
+                    });
+                  },
+                ),
+                FilterButton(
+                  text: 'Bus',
+                  selected: selectedType == 'bus',
+                  onTap: () {
+                    setState(() {
+                      selectedType = 'bus';
+                    });
+                  },
+                ),
+                FilterButton(
+                  text: 'Ship',
+                  selected: selectedType == 'Ship',
+                  onTap: () {
+                    setState(() {
+                      selectedType = 'Ship';
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userId)
+                  .collection('history')
+                  .orderBy('date', descending: true)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No History Data Available'));
-          }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('No History Data Available'));
+                }
 
-          return ListView(
-            children: snapshot.data!.docs.map((document) {
-              try {
-                HistoryItem historyItem = HistoryItem.fromFirestore(document);
-                return CustomCard(historyItem: historyItem);
-              } catch (e) {
-                return ListTile(
-                  title: Text('Error loading item: ${document.id}'),
-                  subtitle: Text('$e'),
+                var historyDocs = snapshot.data!.docs;
+
+                if (selectedType != 'All') {
+                  historyDocs = historyDocs
+                      .where((doc) =>
+                          HistoryItem.fromFirestore(doc).historyType ==
+                          selectedType)
+                      .toList();
+                }
+
+                if (historyDocs.isEmpty) {
+                  return const Center(child: Text('No History Data Available'));
+                }
+
+                return ListView(
+                  children: historyDocs.map((document) {
+                    try {
+                      HistoryItem historyItem =
+                          HistoryItem.fromFirestore(document);
+                      return CustomCard(historyItem: historyItem);
+                    } catch (e) {
+                      return ListTile(
+                        title: Text('Error loading item: ${document.id}'),
+                        subtitle: Text('$e'),
+                      );
+                    }
+                  }).toList(),
                 );
-              }
-            }).toList(),
-          );
-        },
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FilterButton extends StatelessWidget {
+  final String text;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const FilterButton({
+    required this.text,
+    required this.selected,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? color2 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: selected ? Colors.white : Colors.black,
+          ),
+        ),
       ),
     );
   }
@@ -101,9 +207,7 @@ class CustomCard extends StatelessWidget {
           ),
           child: ListTile(
             leading: Icon(
-              historyItem.historyType == 'hotel'
-                  ? Icons.hotel
-                  : Icons.restaurant,
+              _getIcon(historyItem.historyType),
               color: Colors.white,
             ),
             contentPadding: EdgeInsets.symmetric(
@@ -111,18 +215,14 @@ class CustomCard extends StatelessWidget {
               vertical: screenSize.height * 0.02,
             ),
             title: Text(
-              historyItem.historyType == 'hotel'
-                  ? historyItem.hotelName
-                  : historyItem.kulinerName,
+              _getTitle(historyItem),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
             subtitle: Text(
-              historyItem.historyType == 'hotel'
-                  ? historyItem.roomType
-                  : 'notes: ${historyItem.notes}',
+              _getSubtitle(historyItem),
               style: const TextStyle(
                 color: Colors.white70,
               ),
@@ -138,7 +238,7 @@ class CustomCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  historyItem.date.toString(),
+                  historyItem.date,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12.0,
@@ -150,5 +250,50 @@ class CustomCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _getIcon(String historyType) {
+    switch (historyType) {
+      case 'hotel':
+        return Icons.hotel;
+      case 'kuliner':
+        return Icons.restaurant;
+      case 'bus':
+        return Icons.directions_bus;
+      case 'Ship':
+        return Icons.directions_boat;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  String _getTitle(HistoryItem historyItem) {
+    switch (historyItem.historyType) {
+      case 'hotel':
+        return historyItem.hotelName;
+      case 'kuliner':
+        return historyItem.kulinerName;
+      case 'bus':
+        return historyItem.transportName;
+      case 'Ship':
+        return historyItem.destination;
+      default:
+        return 'Unknown';
+    }
+  }
+
+  String _getSubtitle(HistoryItem historyItem) {
+    switch (historyItem.historyType) {
+      case 'hotel':
+        return historyItem.roomType;
+      case 'kuliner':
+        return 'notes: ${historyItem.notes}';
+      case 'bus':
+        return 'Departure: ${historyItem.departTime} ${historyItem.departDate}\nFrom: ${historyItem.origin} To: ${historyItem.destination}';
+      case 'Ship':
+        return 'Departure: ${historyItem.departTime} ${historyItem.departDate}\nFrom: ${historyItem.origin} To: ${historyItem.destination}';
+      default:
+        return 'Unknown';
+    }
   }
 }
