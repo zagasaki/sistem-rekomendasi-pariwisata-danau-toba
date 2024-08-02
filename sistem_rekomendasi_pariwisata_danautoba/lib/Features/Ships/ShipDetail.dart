@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/VirtualAccountPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/ShipModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
@@ -37,6 +40,13 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
     }
   }
 
+  String _generateVirtualAccountNumber() {
+    final random = Random();
+    final accountNumber =
+        List.generate(15, (index) => random.nextInt(10)).join();
+    return accountNumber;
+  }
+
   void _showDatePicker() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -54,6 +64,9 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
   }
 
   void _showConfirmationDialog() {
+    String virtualAccountNumber = _generateVirtualAccountNumber();
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     final user = context.read<UserProvider>();
     showDialog(
       context: context,
@@ -71,7 +84,7 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
               Text('Departure Time: $_selectedDepartureTime'),
               Text('Number of People: $_selectedNumberOfPeople'),
               Text(
-                  'Total Price: ${widget.ticket.price * _selectedNumberOfPeople}'),
+                  'Total Price: ${currencyFormatter.format(widget.ticket.price * _selectedNumberOfPeople)}'),
               Text('Payment Method: $_selectedPaymentMethod'),
               if (_selectedPaymentOption != null)
                 Text('Payment Option: $_selectedPaymentOption'),
@@ -87,12 +100,13 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
             TextButton(
               child: const Text('Confirm'),
               onPressed: () {
+                DateTime paymentDeadline =
+                    DateTime.now().add(const Duration(hours: 1));
                 FirebaseFirestore.instance
                     .collection('Ship_ticket_bookings')
                     .add({
                   'totalPassanger': _selectedNumberOfPeople,
                   'ticketID': widget.ticket.id,
-                  'transportName': widget.ticket.transportName,
                   'userId': user.uid,
                   'username': user.username,
                   'bookingDate':
@@ -106,6 +120,7 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
                   'price': widget.ticket.price * _selectedNumberOfPeople,
                   'paymentMethod': _selectedPaymentMethod,
                   'paymentOption': _selectedPaymentOption,
+                  'virtualAccountNumber': virtualAccountNumber
                 });
 
                 FirebaseFirestore.instance
@@ -116,7 +131,6 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
                   'totalPassanger': _selectedNumberOfPeople,
                   'historyType': 'Ship',
                   'ticketID': widget.ticket.id,
-                  'transportName': widget.ticket.transportName,
                   'userId': user.uid,
                   'username': user.username,
                   'date': DateFormat("dd-MM-yyyy HH:mm").format(DateTime.now()),
@@ -129,6 +143,9 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
                   'price': widget.ticket.price * _selectedNumberOfPeople,
                   'paymentMethod': _selectedPaymentMethod,
                   'paymentOption': _selectedPaymentOption,
+                  'pay': false,
+                  'virtualAccountNumber': virtualAccountNumber,
+                  'paymentDeadline': paymentDeadline
                 });
 
                 setState(() {
@@ -138,7 +155,14 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
                   _selectedPaymentOption = null;
                 });
 
-                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VirtualAccountPage(
+                      virtualAccountNumber: virtualAccountNumber,
+                    ),
+                  ),
+                );
                 Fluttertoast.showToast(
                     msg: "Booking Success",
                     gravity: ToastGravity.TOP,
@@ -160,6 +184,8 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -176,13 +202,32 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                const Icon(
+                  Icons.location_on,
+                  color: Colors.blue,
+                  size: 35,
+                ),
                 Text(
                   widget.ticket.from,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold, color: color2),
                 ),
-                const Icon(Icons.arrow_right),
+              ],
+            ),
+            const Icon(
+              Icons.arrow_downward_rounded,
+              color: color2,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  color: Colors.red,
+                  size: 35,
+                ),
                 Text(
                   widget.ticket.to,
                   style: const TextStyle(
@@ -293,7 +338,7 @@ class _ShipTicketDetailPageState extends State<ShipTicketDetailPage> {
               ),
             const SizedBox(height: 20),
             Text(
-              'Total Price: Rp${widget.ticket.price * _selectedNumberOfPeople}',
+              'Total Price: ${currencyFormatter.format(widget.ticket.price * _selectedNumberOfPeople)}',
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

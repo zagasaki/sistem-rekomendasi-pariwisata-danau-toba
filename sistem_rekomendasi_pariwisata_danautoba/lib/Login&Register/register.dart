@@ -48,8 +48,9 @@ class _RegisterState extends State<Register> {
         'username': _usernameController.text,
         'phone': _phoneController.text,
         'email': email,
-        'tags': ["tuktuk"],
-        'vacationtags': ["pemandangandanau"]
+        'hoteltags': ["tuktuk"],
+        'vacationtags': ["pemandangandanau"],
+        'culinarytags': ["kuah"]
       });
 
       await userCredential.user?.sendEmailVerification();
@@ -75,8 +76,8 @@ class _RegisterState extends State<Register> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/LoginPage.png'),
-              fit: BoxFit.cover,
+              image: AssetImage('assets/login.jpg'),
+              fit: BoxFit.fill,
             ),
           ),
           padding: const EdgeInsets.all(20),
@@ -84,24 +85,21 @@ class _RegisterState extends State<Register> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text("Ready To\nGo?Let's\nGooo",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: "roboto")),
               Container(
                 padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      margin: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.fromLTRB(10, 200, 10, 10),
                       child: Column(
                         children: [
                           const Text(
                             "Username",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -112,7 +110,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "Username",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -135,7 +133,9 @@ class _RegisterState extends State<Register> {
                           const Text(
                             "Email",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -146,7 +146,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "Email",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -169,7 +169,9 @@ class _RegisterState extends State<Register> {
                           const Text(
                             "No Hp",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -180,7 +182,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "No Hp",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -203,7 +205,9 @@ class _RegisterState extends State<Register> {
                           const Text(
                             "Password",
                             style: TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 15),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: Colors.white),
                           ),
                           SizedBox(
                             width: 300,
@@ -215,7 +219,7 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(0.5),
+                                fillColor: Colors.grey.withOpacity(1),
                                 hintText: "Min.8 Charactere",
                                 border: const OutlineInputBorder(
                                     borderSide: BorderSide.none,
@@ -239,10 +243,12 @@ class _RegisterState extends State<Register> {
                 ),
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
                     "Have Any Account?",
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w900, color: Colors.white),
                   ),
                   TextButton(
                     onPressed: () {
@@ -252,7 +258,9 @@ class _RegisterState extends State<Register> {
                       );
                     },
                     child: const Text("Sign In",
-                        style: TextStyle(fontWeight: FontWeight.w900)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Color.fromARGB(255, 0, 255, 8))),
                   ),
                 ],
               ),

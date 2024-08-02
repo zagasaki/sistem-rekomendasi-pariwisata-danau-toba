@@ -36,6 +36,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     userProvider = Provider.of<UserProvider>(context);
   }
 
+  Future<void> updateProfile(
+      String newUsername, String newPhone, String? newProfilePhoto) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userProvider.uid)
+        .update({
+      'username': newUsername,
+      'phoneNumber': newPhone,
+      'profilephoto': newProfilePhoto,
+    });
+
+    userProvider.updateProfileData(newUsername, newPhone, newProfilePhoto);
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);

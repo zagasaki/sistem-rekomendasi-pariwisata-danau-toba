@@ -31,14 +31,23 @@ class _VacationsState extends State<Vacations> {
         List<String> existingTags =
             List<String>.from(userSnapshot.get('vacationtags') ?? []);
 
-        Set<String> updatedTagsSet = {...existingTags, ...newTags};
-        List<String> updatedTags =
-            updatedTagsSet.toList().sublist(0, min(updatedTagsSet.length, 5));
+        for (String tag in newTags) {
+          if (!existingTags.contains(tag)) {
+            if (existingTags.length >= 5) {
+              existingTags.removeAt(0);
+            }
+            existingTags.add(tag);
+          }
+        }
 
         await userDoc
-            .set({'vacationtags': updatedTags}, SetOptions(merge: true));
+            .set({'vacationtags': existingTags}, SetOptions(merge: true));
       } else {
-        await userDoc.set({'vacationtags': newTags});
+        List<String> uniqueNewTags = newTags.toSet().toList();
+        List<String> initialTags = uniqueNewTags.length > 5
+            ? uniqueNewTags.sublist(0, 5)
+            : uniqueNewTags;
+        await userDoc.set({'vacationtags': initialTags});
       }
 
       print('Tags updated successfully.');

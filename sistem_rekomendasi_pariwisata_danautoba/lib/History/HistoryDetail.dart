@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -6,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
+import 'package:intl/intl.dart';
 
 class HistoryDetail extends StatefulWidget {
   final HistoryItem historyItem;
@@ -18,11 +21,14 @@ class HistoryDetail extends StatefulWidget {
 
 class _HistoryDetailState extends State<HistoryDetail> {
   late Future<bool> _isReviewed;
+  late Timer _timer;
+  late Duration _timeLeft;
 
   @override
   void initState() {
     super.initState();
     _isReviewed = _checkIfReviewed();
+    _startCountdown();
   }
 
   Future<bool> _checkIfReviewed() async {
@@ -36,9 +42,42 @@ class _HistoryDetailState extends State<HistoryDetail> {
     return doc.data()?['reviewed'] ?? false;
   }
 
+  void _startCountdown() {
+    final now = DateTime.now();
+    final deadline = widget.historyItem.paymentDeadline;
+    _timeLeft = deadline.difference(now);
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _timeLeft = deadline.difference(DateTime.now());
+        if (_timeLeft.isNegative) {
+          _timer.cancel();
+          _handleDeadlinePassed();
+        }
+      });
+    });
+  }
+
+  void _handleDeadlinePassed() async {
+    if (!widget.historyItem.pay) {
+      await FirebaseFirestore.instance
+          .collection('history')
+          .doc(widget.historyItem.id)
+          .delete();
+
+      Fluttertoast.showToast(
+        msg: 'Deadline exceeded. Booking has been canceled.',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      Navigator.pop(context);
+    }
+  }
+
   void _submitReview(BuildContext context, HistoryItem historyItem,
       String reviewText, double rating) async {
-    final username = context.read<UserProvider>().username;
+    final user = context.read<UserProvider>();
     final itemId = historyItem.historyType == 'hotel'
         ? historyItem.hotelID
         : historyItem.historyType == 'kuliner'
@@ -46,7 +85,7 @@ class _HistoryDetailState extends State<HistoryDetail> {
             : historyItem.ticketID;
 
     Map<String, dynamic> reviewData = {
-      'username': username,
+      'uid': user.uid,
       'rating': rating,
       'deskripsi': reviewText,
       'tanggal': Timestamp.fromDate(DateTime.now()),
@@ -68,15 +107,15 @@ class _HistoryDetailState extends State<HistoryDetail> {
           .collection('history')
           .doc(historyItem.id)
           .update({'reviewed': true}).then((_) {
+        setState(() {
+          _isReviewed = Future.value(true);
+        });
         Fluttertoast.showToast(
           msg: 'Review berhasil',
           gravity: ToastGravity.TOP,
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        setState(() {
-          _isReviewed = Future.value(true);
-        });
       }).catchError((error) {
         Fluttertoast.showToast(
           msg: 'Review gagal diupdate',
@@ -85,19 +124,15 @@ class _HistoryDetailState extends State<HistoryDetail> {
           textColor: Colors.white,
         );
       });
-    }).catchError((error) {
-      Fluttertoast.showToast(
-        msg: 'Review gagal, coba lagi',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+    final isPendingPayment = !widget.historyItem.pay;
+    final showVirtualAccount =
+        isPendingPayment && widget.historyItem.virtualAccountNumber.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -109,7 +144,9 @@ class _HistoryDetailState extends State<HistoryDetail> {
               ? widget.historyItem.hotelName
               : widget.historyItem.historyType == 'kuliner'
                   ? widget.historyItem.kulinerName
-                  : widget.historyItem.transportName,
+                  : widget.historyItem.historyType == 'Ship'
+                      ? widget.historyItem.destination
+                      : widget.historyItem.destination,
           style: const TextStyle(color: Colors.white),
         ),
       ),
@@ -122,13 +159,19 @@ class _HistoryDetailState extends State<HistoryDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Transaction success!',
+              isPendingPayment ? 'Waiting for Payment' : 'Transaction success!',
               style: TextStyle(
                 fontSize: screenSize.width * 0.05,
                 fontWeight: FontWeight.bold,
-                color: Colors.green,
+                color: isPendingPayment ? Colors.red : Colors.green,
               ),
             ),
+            if (showVirtualAccount)
+              _buildDetailRow('Virtual Account Number',
+                  widget.historyItem.virtualAccountNumber),
+            SizedBox(height: screenSize.height * 0.02),
+            const Divider(),
+            SizedBox(height: screenSize.height * 0.02),
             _buildDetailRow('Transaction ID', widget.historyItem.id),
             SizedBox(height: screenSize.height * 0.02),
             _buildDetailRow(
@@ -164,15 +207,41 @@ class _HistoryDetailState extends State<HistoryDetail> {
             if (widget.historyItem.historyType == 'bus')
               _buildDetailRow('Total Passengers',
                   widget.historyItem.totalpassanger.toString()),
+            if (widget.historyItem.historyType == 'Ship')
+              _buildDetailRow('Departure Date', widget.historyItem.departDate),
+            if (widget.historyItem.historyType == 'Ship')
+              _buildDetailRow('Departure Time', widget.historyItem.departTime),
+            if (widget.historyItem.historyType == 'Ship')
+              _buildDetailRow('Origin', widget.historyItem.origin),
+            if (widget.historyItem.historyType == 'Ship')
+              _buildDetailRow('Destination', widget.historyItem.destination),
+            if (widget.historyItem.historyType == 'Ship')
+              _buildDetailRow('Total Passengers',
+                  widget.historyItem.totalpassanger.toString()),
             SizedBox(height: screenSize.height * 0.02),
             _buildDetailRow('Price', 'Rp${widget.historyItem.price}'),
-            SizedBox(height: screenSize.height * 0.02),
-            const Divider(),
-            SizedBox(height: screenSize.height * 0.02),
+            if (isPendingPayment)
+              Text(
+                'Payment Deadline: ${DateFormat('yyyy-MM-dd HH:mm').format(widget.historyItem.paymentDeadline)}',
+                style: TextStyle(
+                  fontSize: screenSize.width * 0.04,
+                  color: Colors.red,
+                ),
+              ),
+            if (isPendingPayment)
+              Text(
+                'Time Left: ${_formatDuration(_timeLeft)}',
+                style: TextStyle(
+                  fontSize: screenSize.width * 0.04,
+                  color: Colors.red,
+                ),
+              ),
           ],
         ),
       ),
-      bottomNavigationBar: widget.historyItem.historyType == 'bus'
+      bottomNavigationBar: widget.historyItem.historyType == 'bus' ||
+              isPendingPayment ||
+              widget.historyItem.historyType == 'Ship'
           ? null
           : Padding(
               padding: EdgeInsets.all(screenSize.width * 0.05),
@@ -223,6 +292,16 @@ class _HistoryDetailState extends State<HistoryDetail> {
         ),
       ],
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    if (duration.isNegative) {
+      return 'Expired';
+    }
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    final seconds = duration.inSeconds % 60;
+    return '${hours}h ${minutes}m ${seconds}s';
   }
 
   void _navigateToReviewPage(BuildContext context, HistoryItem historyItem) {
@@ -294,5 +373,11 @@ class _HistoryDetailState extends State<HistoryDetail> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 }

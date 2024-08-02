@@ -23,11 +23,9 @@ class _StoryState extends State<Story> {
   bool uploading = false;
 
   Future<void> uploadStory(BuildContext context) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    String username = userProvider.username;
-    String profilePictureUrl = userProvider.profilephoto!;
     DateTime now = DateTime.now();
     String caption = captionController.text;
+    final user = Provider.of<UserProvider>(context, listen: false);
 
     if (caption.isEmpty && images.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,11 +53,11 @@ class _StoryState extends State<Story> {
       }
 
       await FirebaseFirestore.instance.collection('stories').add({
-        'username': username,
-        'profilePictureUrl': profilePictureUrl,
+        'uid': user.uid,
         'date': now,
         'caption': caption,
         'images': imageUrls,
+        'likes': [],
       });
 
       setState(() {
@@ -141,13 +139,16 @@ class _StoryState extends State<Story> {
                       title: Container(
                         padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
                         decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(20))),
+                          color: Colors.grey[300],
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20)),
+                        ),
                         child: TextField(
                           controller: captionController,
+                          maxLines: null,
+                          minLines: 1,
                           decoration: const InputDecoration(
-                            fillColor: color1,
+                            fillColor: Colors.white,
                             hintText: 'Tell us your vacation...',
                             border: InputBorder.none,
                           ),

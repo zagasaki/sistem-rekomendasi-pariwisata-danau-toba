@@ -1,7 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
@@ -22,6 +21,11 @@ class _HotelScreenState extends State<HotelScreen> {
   bool hasMoreData = true;
   TextEditingController searchController = TextEditingController();
   DocumentSnapshot? lastDocument;
+
+  String priceFilterState = 'none';
+  String ratingFilterState = 'none';
+  String latestFilterState = 'none';
+  int selectedStarRating = 0;
 
   @override
   void initState() {
@@ -72,14 +76,67 @@ class _HotelScreenState extends State<HotelScreen> {
   }
 
   List<Hotel> filteredHotels(String query) {
-    return hotels.where((hotel) {
+    List<Hotel> filteredList = hotels.where((hotel) {
       final hotelNameLower = hotel.name.toLowerCase();
       final searchLower = query.toLowerCase();
       return hotelNameLower.contains(searchLower);
     }).toList();
+
+    if (priceFilterState == 'highToLow') {
+      filteredList.sort((a, b) => b.price.compareTo(a.price));
+    } else if (priceFilterState == 'lowToHigh') {
+      filteredList.sort((a, b) => a.price.compareTo(b.price));
+    }
+
+    if (ratingFilterState == 'highToLow') {
+      filteredList.sort((a, b) => b.rating.compareTo(a.rating));
+    } else if (ratingFilterState == 'lowToHigh') {
+      filteredList.sort((a, b) => a.rating.compareTo(b.rating));
+    }
+
+    if (selectedStarRating > 0) {
+      filteredList = filteredList
+          .where((hotel) => hotel.rating == selectedStarRating)
+          .toList();
+    }
+
+    return filteredList;
   }
 
-  // Fungsi untuk memperbarui tag pengguna
+  void togglePriceFilter() {
+    setState(() {
+      if (priceFilterState == 'none') {
+        priceFilterState = 'highToLow';
+      } else if (priceFilterState == 'highToLow') {
+        priceFilterState = 'lowToHigh';
+      } else {
+        priceFilterState = 'none';
+      }
+    });
+  }
+
+  void toggleRatingFilter() {
+    setState(() {
+      if (ratingFilterState == 'none') {
+        ratingFilterState = 'highToLow';
+      } else if (ratingFilterState == 'highToLow') {
+        ratingFilterState = 'lowToHigh';
+      } else {
+        ratingFilterState = 'none';
+      }
+    });
+  }
+
+  void selectStarRating(int rating) {
+    setState(() {
+      if (selectedStarRating == rating) {
+        selectedStarRating = 0; // Deselect if already selected
+      } else {
+        selectedStarRating = rating;
+      }
+    });
+  }
+
   Future<void> updateUserTags(String userId, List<String> newTags) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
     DocumentReference userDoc = db.collection('users').doc(userId);
@@ -89,17 +146,26 @@ class _HotelScreenState extends State<HotelScreen> {
 
       if (userSnapshot.exists) {
         List<String> existingTags =
-            List<String>.from(userSnapshot.get('tags') ?? []);
+            List<String>.from(userSnapshot.get('hoteltags') ?? []);
 
-        // Gabungkan tags lama dengan tags baru, lalu ambil 5 tags teratas
-        Set<String> updatedTagsSet = {...existingTags, ...newTags};
-        List<String> updatedTags =
-            updatedTagsSet.toList().sublist(0, min(updatedTagsSet.length, 5));
+        for (String tag in newTags) {
+          if (!existingTags.contains(tag)) {
+            if (existingTags.length >= 5) {
+              existingTags
+                  .removeAt(0); // Remove the oldest tag if limit is exceeded
+            }
+            existingTags.add(tag);
+          }
+        }
 
-        // Perbarui data pengguna dengan tags baru yang sudah di-limit
-        await userDoc.set({'tags': updatedTags}, SetOptions(merge: true));
+        await userDoc.set({'hoteltags': existingTags}, SetOptions(merge: true));
       } else {
-        await userDoc.set({'tags': newTags});
+        List<String> uniqueNewTags =
+            newTags.toSet().toList(); // Remove duplicates from new tags
+        List<String> initialTags = uniqueNewTags.length > 5
+            ? uniqueNewTags.sublist(0, 5)
+            : uniqueNewTags;
+        await userDoc.set({'hoteltags': initialTags});
       }
 
       print('Tags updated successfully.');
@@ -111,6 +177,8 @@ class _HotelScreenState extends State<HotelScreen> {
   @override
   Widget build(BuildContext context) {
     final userId = context.read<UserProvider>().uid;
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -121,7 +189,7 @@ class _HotelScreenState extends State<HotelScreen> {
         title: TextField(
           controller: searchController,
           decoration: const InputDecoration(
-              hintText: 'Cari hotel...',
+              hintText: 'Search hotel...',
               border: InputBorder.none,
               hintStyle: TextStyle(color: Colors.white)),
           onChanged: (value) {
@@ -139,114 +207,246 @@ class _HotelScreenState extends State<HotelScreen> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification scrollInfo) {
-                if (scrollInfo.metrics.pixels ==
-                    scrollInfo.metrics.maxScrollExtent) {
-                  fetchMoreHotels();
-                }
-                return true;
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount:
-                        MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                    childAspectRatio: 2 / 3,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemCount: filteredHotels(searchController.text).length +
-                      (isFetching ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index < filteredHotels(searchController.text).length) {
-                      final hotel =
-                          filteredHotels(searchController.text)[index];
-                      return InkWell(
-                        onTap: () async {
-                          // Perbarui tag pengguna
-                          await updateUserTags(userId!, hotel.tags);
-
-                          // Navigasi ke halaman detail hotel
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HotelDetailPage(
-                                hotel: hotel,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AspectRatio(
-                                aspectRatio: 4 / 3,
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(10),
-                                  ),
-                                  child: Image.network(
-                                    hotel.imageUrls[0],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  hotel.name,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text(
-                                  'Rp. ${hotel.price.toStringAsFixed(0)} / night',
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Icon(Icons.favorite_border),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Center(
-                        child: isFetching
-                            ? const CircularProgressIndicator()
-                            : const Text('No more data'),
-                      );
-                    }
-                  },
+      body: Column(
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                FilterButton(
+                  text: _getPriceFilterText(),
+                  selected: priceFilterState != 'none',
+                  onTap: togglePriceFilter,
                 ),
+                FilterButton(
+                  text: _getRatingFilterText(),
+                  selected: ratingFilterState != 'none',
+                  onTap: toggleRatingFilter,
+                ),
+                ...List.generate(5, (index) {
+                  int rating = index + 1;
+                  return StarFilterButton(
+                    rating: rating,
+                    selected: selectedStarRating == rating,
+                    onTap: () => selectStarRating(rating),
+                  );
+                }),
+              ],
+            ),
+          ),
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      if (scrollInfo.metrics.pixels ==
+                          scrollInfo.metrics.maxScrollExtent) {
+                        fetchMoreHotels();
+                      }
+                      return true;
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.7,
+                          crossAxisSpacing: 1,
+                          mainAxisSpacing: 1,
+                        ),
+                        itemCount:
+                            filteredHotels(searchController.text).length +
+                                (isFetching ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index <
+                              filteredHotels(searchController.text).length) {
+                            final hotel =
+                                filteredHotels(searchController.text)[index];
+                            return InkWell(
+                                onTap: () async {
+                                  await updateUserTags(userId!, hotel.tags);
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => HotelDetailPage(
+                                        hotel: hotel,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Card(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 1.2,
+                                        child: Image.network(
+                                          hotel.imageUrl,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          hotel.name,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0, vertical: 4.0),
+                                        child: Row(
+                                          children: List.generate(5, (index) {
+                                            return Icon(
+                                              index < hotel.rating
+                                                  ? Icons.star
+                                                  : Icons.star_border,
+                                              color: Colors.amber,
+                                              size: 20,
+                                            );
+                                          }),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0),
+                                        child: Text(
+                                          currencyFormatter.format(hotel.price),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                    ],
+                                  ),
+                                ));
+                          } else {
+                            return Center(
+                              child: isFetching
+                                  ? const CircularProgressIndicator()
+                                  : const Text('No more data'),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getPriceFilterText() {
+    if (priceFilterState == 'highToLow') {
+      return 'High Price';
+    } else if (priceFilterState == 'lowToHigh') {
+      return 'Low Price';
+    } else {
+      return 'Price Filter';
+    }
+  }
+
+  String _getRatingFilterText() {
+    if (ratingFilterState == 'highToLow') {
+      return 'High Rating';
+    } else if (ratingFilterState == 'lowToHigh') {
+      return 'Low Rating';
+    } else {
+      return 'Rating Filter';
+    }
+  }
+}
+
+class FilterButton extends StatelessWidget {
+  final String text;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const FilterButton({
+    required this.text,
+    required this.selected,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: selected ? color2 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: selected ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class StarFilterButton extends StatelessWidget {
+  final int rating;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const StarFilterButton({
+    required this.rating,
+    required this.selected,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: selected ? color2 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Text(
+              '$rating',
+              style: TextStyle(
+                color: selected ? Colors.white : Colors.black,
               ),
             ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.star,
+              color: selected ? Colors.white : Colors.black,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

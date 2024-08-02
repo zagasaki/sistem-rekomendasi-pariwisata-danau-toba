@@ -35,7 +35,7 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
 
   Future<List<ShipTicket>> fetchShipTickets() async {
     try {
-      var snapshot = await FirebaseFirestore.instance.collection('Ship').get();
+      var snapshot = await FirebaseFirestore.instance.collection('ship').get();
       print('Fetched ${snapshot.docs.length} tickets');
       return snapshot.docs
           .map((doc) => ShipTicket.fromFirestore(doc.data(), doc.id))
@@ -67,6 +67,7 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -79,17 +80,19 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.symmetric(
+              horizontal: screenSize.width * 0.05,
+              vertical: screenSize.height * 0.02),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Order Your Bus Ticket',
+                'Order Your Ship Ticket',
                 style: TextStyle(
                     fontSize: 24, fontWeight: FontWeight.bold, color: color2),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenSize.height * 0.03),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: 'Origin',
@@ -112,7 +115,7 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
                         ))
                     .toList(),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenSize.height * 0.03),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: 'Destination',
@@ -133,7 +136,7 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
                         ))
                     .toList(),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenSize.height * 0.03),
               if (_selectedOrigin != null)
                 Container(
                     decoration: const BoxDecoration(
@@ -169,12 +172,6 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          ticket.transportName,
-                                          style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold),
-                                        ),
                                         Row(
                                           children: [
                                             Text(
@@ -184,6 +181,13 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
                                                   fontWeight: FontWeight.bold),
                                             ),
                                             const Icon(Icons.arrow_right),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            const SizedBox(
+                                              width: 100,
+                                            ),
                                             Text(
                                               ticket.to,
                                               style: const TextStyle(
@@ -206,8 +210,7 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
                                         ),
                                         const SizedBox(height: 10),
                                         Container(
-                                          margin:
-                                              const EdgeInsets.only(left: 180),
+                                          alignment: Alignment.centerRight,
                                           child: ElevatedButton(
                                             onPressed: () {
                                               Navigator.push(
@@ -240,7 +243,7 @@ class _ShipTicketOrderPageState extends State<ShipTicketOrderPage> {
                               },
                             ),
                           )),
-              const SizedBox(height: 20),
+              SizedBox(height: screenSize.height * 0.03),
             ],
           ),
         ),

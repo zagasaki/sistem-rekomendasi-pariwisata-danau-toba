@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/BusDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/BusModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart'; // Import halaman detail
@@ -68,6 +69,8 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -200,7 +203,8 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
-                                          'Rp ${ticket.price}',
+                                          currencyFormatter
+                                              .format(ticket.price),
                                           style: const TextStyle(
                                               fontSize: 16,
                                               color: Colors.green),

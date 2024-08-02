@@ -1,9 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/BusModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/VirtualAccountPage.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 
@@ -37,6 +40,13 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
     }
   }
 
+  String _generateVirtualAccountNumber() {
+    final random = Random();
+    final accountNumber =
+        List.generate(15, (index) => random.nextInt(10)).join();
+    return accountNumber;
+  }
+
   void _showDatePicker() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -54,6 +64,8 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
   }
 
   void _showConfirmationDialog() {
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     final user = context.read<UserProvider>();
     showDialog(
       context: context,
@@ -71,7 +83,7 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
               Text('Departure Time: $_selectedDepartureTime'),
               Text('Number of People: $_selectedNumberOfPeople'),
               Text(
-                  'Total Price: ${widget.ticket.price * _selectedNumberOfPeople}'),
+                  'Total Price: ${currencyFormatter.format(widget.ticket.price * _selectedNumberOfPeople)}'),
               Text('Payment Method: $_selectedPaymentMethod'),
               if (_selectedPaymentOption != null)
                 Text('Payment Option: $_selectedPaymentOption'),
@@ -87,7 +99,9 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
             TextButton(
               child: const Text('Confirm'),
               onPressed: () {
-                // Send data to log booking and user history
+                DateTime paymentDeadline =
+                    DateTime.now().add(const Duration(minutes: 30));
+                String virtualAccountNumber = _generateVirtualAccountNumber();
                 FirebaseFirestore.instance
                     .collection('bus_ticket_bookings')
                     .add({
@@ -107,6 +121,7 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
                   'price': widget.ticket.price * _selectedNumberOfPeople,
                   'paymentMethod': _selectedPaymentMethod,
                   'paymentOption': _selectedPaymentOption,
+                  'virtualAccountNumber': virtualAccountNumber
                 });
 
                 FirebaseFirestore.instance
@@ -130,6 +145,9 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
                   'price': widget.ticket.price * _selectedNumberOfPeople,
                   'paymentMethod': _selectedPaymentMethod,
                   'paymentOption': _selectedPaymentOption,
+                  'pay': false,
+                  'virtualAccountNumber': virtualAccountNumber,
+                  'paymentDeadline': paymentDeadline,
                 });
 
                 setState(() {
@@ -139,7 +157,14 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
                   _selectedPaymentOption = null;
                 });
 
-                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VirtualAccountPage(
+                      virtualAccountNumber: virtualAccountNumber,
+                    ),
+                  ),
+                );
                 Fluttertoast.showToast(
                     msg: "Booking Success",
                     gravity: ToastGravity.TOP,
@@ -161,6 +186,8 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -294,7 +321,7 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
               ),
             const SizedBox(height: 20),
             Text(
-              'Total Price: Rp${widget.ticket.price * _selectedNumberOfPeople}',
+              'Total Price:${currencyFormatter.format(widget.ticket.price * _selectedNumberOfPeople)}',
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

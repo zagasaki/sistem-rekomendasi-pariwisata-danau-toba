@@ -147,11 +147,9 @@ class _LoginState extends State<Login> {
         DocumentSnapshot userSnapshot =
             await FirebaseFirestore.instance.collection('users').doc(uid).get();
         if (!userSnapshot.exists) {
-          // Jika pengguna baru, simpan data pengguna ke Firestore
           await FirebaseFirestore.instance.collection('users').doc(uid).set({
             'email': userCredential.user?.email,
             'name': userCredential.user?.displayName,
-            // Tambahkan field lainnya yang Anda butuhkan
           });
         }
 
@@ -231,8 +229,8 @@ class _LoginState extends State<Login> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/LoginPage.png'),
-              fit: BoxFit.cover,
+              image: AssetImage('assets/login.jpg'),
+              fit: BoxFit.fill,
             ),
           ),
           padding: const EdgeInsets.all(20),
@@ -241,13 +239,7 @@ class _LoginState extends State<Login> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(height: 30),
-                const Text("Ready\nTo\nStart?",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: "roboto")),
-                const SizedBox(height: 180),
+                const SizedBox(height: 200),
                 // FORM LOGIN
                 Container(
                   padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
@@ -257,7 +249,9 @@ class _LoginState extends State<Login> {
                       const Text(
                         "Email",
                         style: TextStyle(
-                            fontWeight: FontWeight.w900, fontSize: 15),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                            color: Colors.white),
                       ),
                       SizedBox(
                         width: 300,
@@ -271,7 +265,7 @@ class _LoginState extends State<Login> {
                                     BorderRadius.all(Radius.circular(10))),
                             focusColor: Colors.white,
                             filled: true,
-                            fillColor: Colors.grey.withOpacity(0.5),
+                            fillColor: Colors.grey.withOpacity(1),
                             hintText: "Email",
                             border: const OutlineInputBorder(
                               borderSide: BorderSide.none,
@@ -294,7 +288,9 @@ class _LoginState extends State<Login> {
                       // PASSWORD
                       const Text("Password",
                           style: TextStyle(
-                              fontWeight: FontWeight.w900, fontSize: 15)),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                              color: Colors.white)),
                       SizedBox(
                         width: 300,
                         child: TextFormField(
@@ -304,7 +300,7 @@ class _LoginState extends State<Login> {
                             contentPadding:
                                 const EdgeInsets.fromLTRB(10, 10, 10, 10),
                             filled: true,
-                            fillColor: Colors.grey.withOpacity(0.5),
+                            fillColor: Colors.grey.withOpacity(1),
                             hintText: "Minimum 8 characters",
                             border: const OutlineInputBorder(
                               borderSide: BorderSide.none,
@@ -332,7 +328,13 @@ class _LoginState extends State<Login> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account?"),
+                          const Text(
+                            "Don't have an account?",
+                            style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white),
+                          ),
                           TextButton(
                             onPressed: () {
                               Navigator.push(
@@ -342,7 +344,13 @@ class _LoginState extends State<Login> {
                                 ),
                               );
                             },
-                            child: const Text("Register"),
+                            child: const Text(
+                              "Register",
+                              style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color.fromARGB(255, 0, 255, 8)),
+                            ),
                           ),
                         ],
                       ),
@@ -357,7 +365,12 @@ class _LoginState extends State<Login> {
                             ),
                           );
                         },
-                        child: const Text("Forgot Password?"),
+                        child: const Text("Forgot Password?",
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            )),
                       ),
                       const SizedBox(height: 10),
                       ElevatedButton.icon(

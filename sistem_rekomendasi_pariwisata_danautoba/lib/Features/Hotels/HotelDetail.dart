@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:intl/intl.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelReview.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'HotelBooking.dart';
@@ -27,6 +28,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         .collection('hotels')
         .doc(widget.hotel.id)
         .collection('reviews')
+        .orderBy('tanggal', descending: true)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Review.fromFirestore(doc)).toList());
@@ -43,101 +45,80 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
     return snapshot.docs.map((doc) => Room.fromDocSnapshot(doc)).toList();
   }
 
-  void _showAllReviews(BuildContext context, String hotelId) {
-    // Mendeklarasikan stream di dalam fungsi untuk memastikan penggunaan konteks yang benar
-    Stream<List<Review>> reviewsStream = FirebaseFirestore.instance
-        .collection('hotels')
-        .doc(hotelId)
-        .collection('reviews')
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Review.fromFirestore(doc)).toList());
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Semua Ulasan'),
-          content: SingleChildScrollView(
-            child: StreamBuilder<List<Review>>(
-              stream: reviewsStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('Belum ada ulasan.');
-                }
-                return Column(
-                  children: snapshot.data!.map((review) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4.0),
-                      color: Colors.blue[100], // Warna latar belakang ListTile
-                      child: ListTile(
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'By: ${review.username}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ),
-                                const Icon(Icons.star, color: Colors.yellow),
-                                Text(
-                                  '${review.rating}',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              review.deskripsi,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Tanggal: ${review.tanggal}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Tutup'),
-            ),
-          ],
-        );
-      },
-    );
+  Future<DocumentSnapshot> _getUserSnapshot(String uid) {
+    return FirebaseFirestore.instance.collection('users').doc(uid).get();
   }
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
+
+    Widget buildReviewCard(Review review) {
+      return FutureBuilder<DocumentSnapshot>(
+        future: _getUserSnapshot(review.uid),
+        builder: (context, userSnapshot) {
+          if (userSnapshot.connectionState == ConnectionState.waiting) {
+            return const CircleAvatar(child: CircularProgressIndicator());
+          }
+          if (userSnapshot.hasError || !userSnapshot.hasData) {
+            return const CircleAvatar(child: Icon(Icons.error));
+          }
+
+          final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+          final profilePicUrl = userData['profilephoto'] ?? '';
+          final username = userData['username'] ?? 'Anonymous';
+
+          return Container(
+            width: 300,
+            margin: const EdgeInsets.symmetric(horizontal: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: const BorderRadius.all(Radius.circular(20)),
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(profilePicUrl),
+              ),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          username,
+                          style: const TextStyle(
+                              fontSize: 17,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      const Icon(Icons.star, color: Colors.yellow),
+                      Text(
+                        '${review.rating}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    review.deskripsi,
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('dd-MM-yyyy').format(review.tanggal),
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -216,27 +197,32 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                     style: const TextStyle(
                         fontSize: 24, fontWeight: FontWeight.bold),
                   ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 0, vertical: 4.0),
+                        child: Row(
+                          children: List.generate(5, (index) {
+                            return Icon(
+                              index < widget.hotel.rating
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: Colors.amber,
+                              size: 20,
+                            );
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Text(widget.hotel.address),
                   const SizedBox(height: 8),
                   Text('Email: ${widget.hotel.contact}'),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text(
-                        'Rating: ',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      const Icon(Icons.star, color: Colors.yellow),
-                      Text(
-                        '${widget.hotel.rating}',
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   const Text(
-                    'Fasilitas:',
+                    'Facilities:',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -251,7 +237,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Ulasan Terbaru:',
+                    'Recent Review:',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -265,9 +251,8 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                         return Text('Error: ${snapshot.error}');
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Text('Belum ada ulasan.');
+                        return const Text('Not reviewed yet');
                       }
-                      // Ambil 5 ulasan terbaru
                       List<Review> latestReviews =
                           snapshot.data!.reversed.take(5).toList();
 
@@ -277,65 +262,13 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                           scrollDirection: Axis.horizontal,
                           itemCount: latestReviews.length,
                           itemBuilder: (context, index) {
-                            Review review = latestReviews[index];
-                            return Container(
-                              width: 300,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              decoration: const BoxDecoration(
-                                color: color3,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20)),
-                              ),
-                              child: ListTile(
-                                title: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            review.username,
-                                            style: const TextStyle(
-                                                fontSize: 17,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w900),
-                                          ),
-                                        ),
-                                        const Icon(Icons.star,
-                                            color: Colors.yellow),
-                                        Text(
-                                          '${review.rating}',
-                                          style: const TextStyle(fontSize: 16),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      review.deskripsi,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${review.tanggal}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
+                            return buildReviewCard(latestReviews[index]);
                           },
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -344,10 +277,10 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                               builder: (context) =>
                                   HotelReview(hotelId: widget.hotel.id)));
                     },
-                    child: const Text('Lihat Semua Ulasan'),
+                    child: const Text('See all review'),
                   ),
                   const Text(
-                    'Kamar:',
+                    'Room:',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -423,21 +356,31 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Fasilitas: ${room.facilities.join(', ')}',
+                                          'Facilities: ${room.facilities.join(', ')}',
                                           style: const TextStyle(
                                               color: Colors.white),
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(
-                                          'Ketersediaan: ${room.available ? 'Tersedia' : 'Penuh'}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                            color: room.available
-                                                ? const Color.fromARGB(
-                                                    255, 0, 255, 8)
-                                                : Colors.red,
+                                        Container(
+                                          decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(15))),
+                                          padding: const EdgeInsets.all(8),
+                                          child: Text(
+                                            room.available
+                                                ? 'available'
+                                                : 'not available',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                              color: room.available
+                                                  ? const Color.fromARGB(
+                                                      255, 15, 174, 1)
+                                                  : Colors.red,
+                                            ),
                                           ),
-                                        ),
+                                        )
                                       ],
                                     ),
                                   ),
@@ -449,7 +392,8 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          'Rp ${room.pricePerNight}',
+                                          currencyFormatter
+                                              .format(widget.hotel.price),
                                           style: const TextStyle(
                                             color: color1,
                                             fontSize: 20,

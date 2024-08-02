@@ -8,6 +8,9 @@ class HistoryItem {
   final int price;
   final String username;
   final bool reviewed;
+  final String virtualAccountNumber;
+  final bool pay;
+  final DateTime paymentDeadline;
 
   //HotelHistoryModel
   final String hotelID;
@@ -37,6 +40,9 @@ class HistoryItem {
     required this.price,
     required this.username,
     required this.reviewed,
+    required this.virtualAccountNumber,
+    required this.pay,
+    required this.paymentDeadline,
 
     //HotelHistoryModel
     required this.hotelID,
@@ -49,7 +55,7 @@ class HistoryItem {
     required this.address,
     required this.notes,
 
-    //BusHistoryModel
+    //Bus&ShipHistoryModel
     required this.ticketID,
     required this.transportName,
     required this.departDate,
@@ -66,6 +72,13 @@ class HistoryItem {
       throw StateError('Missing data for HistoryItem: ${doc.id}');
     }
 
+    DateTime paymentDeadline;
+    if (data['paymentDeadline'] is Timestamp) {
+      paymentDeadline = (data['paymentDeadline'] as Timestamp).toDate();
+    } else {
+      paymentDeadline = DateTime.now();
+    }
+
     return HistoryItem(
         id: doc.id,
         historyType: data['historyType'] ?? 'unknown history type',
@@ -74,6 +87,9 @@ class HistoryItem {
         price: data['price'] ?? 0,
         username: data['username'] ?? 'unknown username',
         reviewed: data['reviewed'] ?? false,
+        virtualAccountNumber: data['virtualAccountNumber'] ?? '',
+        pay: data['pay'] ?? false,
+        paymentDeadline: paymentDeadline,
 
         //HotelHistoryModel
         hotelID: data['hotelID'] ?? 'unknown hotel id',
@@ -86,7 +102,7 @@ class HistoryItem {
         address: data['address'] ?? 'unknown address',
         notes: data['notes'] ?? 'unknown notes',
 
-        //BusHistoryModel
+        //Bus&ShipHistoryModel
         ticketID: data['ticketID'] ?? 'uknown ticketID',
         departTime: data['departTime'] ?? 'unknown departTime',
         departDate: data['departDate'] ?? 'unknown departDate',

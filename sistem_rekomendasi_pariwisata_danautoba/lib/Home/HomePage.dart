@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/Bus.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/KulinerDetail.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/KulinerModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/Hotel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/kuliner.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelDetail.dart';
@@ -12,8 +14,12 @@ import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Ships/Ship.dart
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/Vacations.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/VacationsDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Vacations/VacationsModel.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/CulinaryRecomendation.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/DestinationRecomendation.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Home/HotelRecomendation.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/main.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,7 +29,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   final List<Map<String, dynamic>> features = [
     {'icon': Icons.hotel_rounded, 'name': 'Hotels'},
     {'icon': Icons.directions_boat_filled, 'name': 'Ships'},
@@ -48,12 +54,67 @@ class _HomePageState extends State<HomePage>
       begin: 0.0,
       end: 1.0,
     ).animate(_controller);
+
+    fetchRecommendations();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    routeObserver.unsubscribe(this);
     super.dispose();
+  }
+
+  void fetchRecommendations() {
+    final userId = context.read<UserProvider>().uid!;
+    fetchRecommendedCulinary(userId);
+    fetchRecommendedDestination(userId);
+    fetchRecommendedHotels(userId);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    fetchRecommendations();
+  }
+
+  Future<List<KulinerModel>> fetchRecommendedCulinary(String userId) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    List<String> userTags = await getCulinaryTags(userId);
+    QuerySnapshot<Map<String, dynamic>> snapshot = await db
+        .collection('kuliner')
+        .where('tags', arrayContainsAny: userTags)
+        .limit(5)
+        .get();
+
+    List<KulinerModel> recommendedCulinary = [];
+    for (var doc in snapshot.docs) {
+      recommendedCulinary.add(KulinerModel.fromDocSnapshot(doc));
+    }
+    return recommendedCulinary;
+  }
+
+  Future<List<String>> getCulinaryTags(String userId) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentSnapshot userSnapshot =
+        await db.collection('users').doc(userId).get();
+
+    if (userSnapshot.exists) {
+      List<String> userTags =
+          List<String>.from(userSnapshot.get('culinarytags') ?? []);
+      return userTags;
+    } else {
+      return [];
+    }
   }
 
   Future<List<Destination>> fetchRecommendedDestination(String userId) async {
@@ -83,27 +144,14 @@ class _HomePageState extends State<HomePage>
           List<String>.from(userSnapshot.get('vacationtags') ?? []);
       return userTags;
     } else {
-      return []; // Jika user tidak ditemukan atau tidak memiliki tags
-    }
-  }
-
-  Future<List<String>> getUserTags(String userId) async {
-    FirebaseFirestore db = FirebaseFirestore.instance;
-    DocumentSnapshot userSnapshot =
-        await db.collection('users').doc(userId).get();
-
-    if (userSnapshot.exists) {
-      List<String> userTags = List<String>.from(userSnapshot.get('tags') ?? []);
-      return userTags;
-    } else {
-      return []; // Jika user tidak ditemukan atau tidak memiliki tags
+      return [];
     }
   }
 
   Future<List<Hotel>> fetchRecommendedHotels(String userId) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
 
-    List<String> userTags = await getUserTags(userId);
+    List<String> userTags = await getHotelTags(userId);
     QuerySnapshot<Map<String, dynamic>> snapshot = await db
         .collection('hotels')
         .where('tags', arrayContainsAny: userTags)
@@ -117,8 +165,21 @@ class _HomePageState extends State<HomePage>
     return recommendedHotels;
   }
 
+  Future<List<String>> getHotelTags(String userId) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentSnapshot userSnapshot =
+        await db.collection('users').doc(userId).get();
+
+    if (userSnapshot.exists) {
+      List<String> userTags =
+          List<String>.from(userSnapshot.get('hoteltags') ?? []);
+      return userTags;
+    } else {
+      return [];
+    }
+  }
+
   void _onFeatureTap(String featureName) {
-    // Handle navigation based on the feature tapped
     switch (featureName) {
       case 'Hotels':
         Navigator.push(
@@ -272,8 +333,7 @@ class _HomePageState extends State<HomePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   FutureBuilder<List<Hotel>>(
-                    future: fetchRecommendedHotels(
-                        user.uid!), // Ambil data hotel yang direkomendasikan
+                    future: fetchRecommendedHotels(user.uid!),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(
@@ -285,8 +345,7 @@ class _HomePageState extends State<HomePage>
                       } else if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const SizedBox
-                            .shrink(); // Tidak ada hotel direkomendasikan
+                        return const SizedBox.shrink();
                       } else {
                         List<Hotel> recommendedHotels = snapshot.data!;
 
@@ -312,8 +371,7 @@ class _HomePageState extends State<HomePage>
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => HotelDetailPage(
-                                            hotel: recommendedHotels[
-                                                index], // Pass hotel object to detail page
+                                            hotel: recommendedHotels[index],
                                           ),
                                         ),
                                       );
@@ -370,6 +428,17 @@ class _HomePageState extends State<HomePage>
                                 ),
                               ),
                             ),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              HotelRecommendationListPage(
+                                                  userId: user.uid!)));
+                                },
+                                child:
+                                    const Text("See all hotel recomendation"))
                           ],
                         );
                       }
@@ -477,6 +546,134 @@ class _HomePageState extends State<HomePage>
                                 ),
                               ),
                             ),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              DestinationRecommendationPage(
+                                                  userId: user.uid!)));
+                                },
+                                child: const Text(
+                                    "See all destination recomendation"))
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                  SizedBox(height: screenSize.height * 0.03),
+                  FutureBuilder<List<KulinerModel>>(
+                    future: fetchRecommendedCulinary(user.uid!),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: RotationTransition(
+                            turns: _animation,
+                            child: const Icon(Icons.donut_large),
+                          ),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const SizedBox.shrink();
+                      } else {
+                        List<KulinerModel> recommendedDestinations =
+                            snapshot.data!;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Culinary Recommended for You",
+                              style: TextStyle(
+                                fontSize: screenSize.width * 0.05,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: screenSize.height * 0.02),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: List.generate(
+                                  recommendedDestinations.length,
+                                  (index) => GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => KulinerDetail(
+                                            kuliner:
+                                                recommendedDestinations[index],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      margin: EdgeInsets.only(
+                                          right: screenSize.width * 0.03),
+                                      width: screenSize.width * 0.6,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 10.0,
+                                            offset: Offset(0, 5),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            height: screenSize.height * 0.15,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.vertical(
+                                                top: Radius.circular(10),
+                                              ),
+                                              image: DecorationImage(
+                                                image: NetworkImage(
+                                                    recommendedDestinations[
+                                                            index]
+                                                        .imageUrl),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(
+                                                screenSize.width * 0.03),
+                                            child: Text(
+                                              recommendedDestinations[index]
+                                                  .name,
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              CulinaryRecommendationPage(
+                                                  userId: user.uid!)));
+                                },
+                                child: const Text(
+                                    "See all culinary recomendation"))
                           ],
                         );
                       }
