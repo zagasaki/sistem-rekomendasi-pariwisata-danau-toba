@@ -229,7 +229,7 @@ class _LoginState extends State<Login> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/login.jpg'),
+              image: AssetImage('assets/laketoba.jpg'),
               fit: BoxFit.fill,
             ),
           ),
@@ -239,7 +239,7 @@ class _LoginState extends State<Login> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(height: 200),
+                const SizedBox(height: 260),
                 // FORM LOGIN
                 Container(
                   padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
@@ -265,10 +265,9 @@ class _LoginState extends State<Login> {
                                     BorderRadius.all(Radius.circular(10))),
                             focusColor: Colors.white,
                             filled: true,
-                            fillColor: Colors.grey.withOpacity(1),
+                            fillColor: Colors.grey.withOpacity(0.5),
                             hintText: "Email",
                             border: const OutlineInputBorder(
-                              borderSide: BorderSide.none,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10)),
                             ),
@@ -300,10 +299,9 @@ class _LoginState extends State<Login> {
                             contentPadding:
                                 const EdgeInsets.fromLTRB(10, 10, 10, 10),
                             filled: true,
-                            fillColor: Colors.grey.withOpacity(1),
+                            fillColor: Colors.grey.withOpacity(0.5),
                             hintText: "Minimum 8 characters",
                             border: const OutlineInputBorder(
-                              borderSide: BorderSide.none,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10)),
                             ),
@@ -373,25 +371,25 @@ class _LoginState extends State<Login> {
                             )),
                       ),
                       const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: _loginWithGoogle,
-                        icon: Image.asset(
-                          'assets/google_logo.png',
-                          height: 24,
-                          width: 24,
-                        ),
-                        label: const Text('Login with Google'),
-                      ),
-                      const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: _loginWithFacebook,
-                        icon: Image.asset(
-                          'assets/facebook_logo.png',
-                          height: 24,
-                          width: 24,
-                        ),
-                        label: const Text('Login with Facebook'),
-                      ),
+                      // ElevatedButton.icon(
+                      //   onPressed: _loginWithGoogle,
+                      //   icon: Image.asset(
+                      //     'assets/google_logo.png',
+                      //     height: 24,
+                      //     width: 24,
+                      //   ),
+                      //   label: const Text('Login with Google'),
+                      // ),
+                      // const SizedBox(height: 10),
+                      // ElevatedButton.icon(
+                      //   onPressed: _loginWithFacebook,
+                      //   icon: Image.asset(
+                      //     'assets/facebook_logo.png',
+                      //     height: 24,
+                      //     width: 24,
+                      //   ),
+                      //   label: const Text('Login with Facebook'),
+                      // ),
                     ],
                   ),
                 ),

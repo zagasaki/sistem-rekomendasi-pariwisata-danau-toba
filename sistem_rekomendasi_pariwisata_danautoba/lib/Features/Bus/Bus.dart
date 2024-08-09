@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +23,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
     'Medan',
     'Pematang Siantar',
     'Parapat',
-    'Danau Toba',
+    'Silangit Airport',
     'Berastagi',
     'Samosir',
   ];
@@ -29,7 +31,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
     'Medan',
     'Pematang Siantar',
     'Parapat',
-    'Danau Toba',
+    'Silangit Airport',
     'Berastagi',
     'Samosir'
   ];
@@ -37,12 +39,10 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
   Future<List<BusTicket>> fetchBusTickets() async {
     try {
       var snapshot = await FirebaseFirestore.instance.collection('buses').get();
-      print('Fetched ${snapshot.docs.length} tickets');
       return snapshot.docs
           .map((doc) => BusTicket.fromFirestore(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      print('Error fetching tickets: $e');
       return [];
     }
   }
@@ -61,7 +61,6 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
   }
 
   List<String> _getAvailableDestinations() {
-    // Filter destinations based on selected origin
     return _destinations.where((destination) {
       return _selectedOrigin == null || destination != _selectedOrigin;
     }).toList();
@@ -71,14 +70,17 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
   Widget build(BuildContext context) {
     final NumberFormat currencyFormatter =
         NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: color2,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
+        title: Text(
           'Bus',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+              color: Colors.white, fontSize: size.width * mediumfontsize),
         ),
       ),
       body: SingleChildScrollView(
@@ -87,13 +89,16 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Order Your Bus Ticket',
                 style: TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold, color: color2),
+                  fontSize: size.width * mediumfontsize,
+                  fontWeight: FontWeight.bold,
+                  color: color2,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: size.width * 0.08),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: 'Origin',
@@ -116,7 +121,13 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                         ))
                     .toList(),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: size.width * 0.02),
+              Icon(
+                Icons.arrow_downward_outlined,
+                size: size.width * iconsize,
+                color: Colors.grey,
+              ),
+              SizedBox(height: size.width * 0.02),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: 'Destination',
@@ -137,7 +148,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                         ))
                     .toList(),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: size.height * 0.02),
               if (_selectedOrigin != null)
                 Container(
                     decoration: const BoxDecoration(
@@ -153,7 +164,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                             ),
                           ))
                         : Padding(
-                            padding: const EdgeInsets.all(15),
+                            padding: EdgeInsets.all(size.height * 0.01),
                             child: ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -162,46 +173,51 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                                 var ticket = _filteredBusTickets[index];
                                 return Card(
                                   elevation: 5,
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
+                                  margin: EdgeInsets.symmetric(
+                                      vertical: size.height * 0.01),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
+                                    padding: EdgeInsets.all(size.height * 0.02),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           ticket.transportName,
-                                          style: const TextStyle(
-                                              fontSize: 18,
+                                          style: TextStyle(
+                                              fontSize:
+                                                  size.width * normalfontsize,
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Row(
                                           children: [
                                             Text(
                                               ticket.from,
-                                              style: const TextStyle(
-                                                  fontSize: 18,
+                                              style: TextStyle(
+                                                  fontSize: size.width *
+                                                      normalfontsize,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                             const Icon(Icons.arrow_right),
                                             Text(
                                               ticket.to,
-                                              style: const TextStyle(
-                                                  fontSize: 18,
+                                              style: TextStyle(
+                                                  fontSize: size.width *
+                                                      normalfontsize,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 10),
+                                        SizedBox(height: size.height * 0.02),
                                         Text(
                                           'Depart Times: ${ticket.departTime.join(', ')}',
-                                          style: const TextStyle(fontSize: 16),
+                                          style: TextStyle(
+                                              fontSize:
+                                                  size.width * smallfontsize),
                                         ),
-                                        const SizedBox(height: 5),
+                                        SizedBox(height: size.height * 0.01),
                                         Text(
                                           currencyFormatter
                                               .format(ticket.price),
@@ -209,10 +225,9 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                                               fontSize: 16,
                                               color: Colors.green),
                                         ),
-                                        const SizedBox(height: 10),
+                                        SizedBox(height: size.height * 0.01),
                                         Container(
-                                          margin:
-                                              const EdgeInsets.only(left: 180),
+                                          alignment: Alignment.centerRight,
                                           child: ElevatedButton(
                                             onPressed: () {
                                               Navigator.push(
@@ -227,8 +242,9 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                                             },
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: color2,
-                                              textStyle: const TextStyle(
-                                                  fontSize: 15,
+                                              textStyle: TextStyle(
+                                                  fontSize: size.width *
+                                                      smallfontsize,
                                                   color: Colors.white),
                                             ),
                                             child: const Text(
@@ -245,7 +261,7 @@ class _BusTicketOrderPageState extends State<BusTicketOrderPage> {
                               },
                             ),
                           )),
-              const SizedBox(height: 20),
+              SizedBox(height: size.height * 0.02),
             ],
           ),
         ),

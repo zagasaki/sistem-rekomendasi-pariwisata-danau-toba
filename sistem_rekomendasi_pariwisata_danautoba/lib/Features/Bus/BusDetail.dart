@@ -23,13 +23,22 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
   String? _selectedDepartureTime;
   String? _selectedPaymentMethod;
   String? _selectedPaymentOption;
+  String? _selectedPaymentOptionImage;
   DateTime? _selectedDate;
   int _selectedNumberOfPeople = 1;
   final TextEditingController _dateController = TextEditingController();
 
-  final Map<String, List<String>> paymentOptions = {
-    'E-Wallet': ['Dana', 'OVO', 'Doku'],
-    'Bank Transfer': ['BRI', 'BCA', 'Mandiri'],
+  final Map<String, List<Map<String, String>>> paymentOptions = {
+    'E-Wallet': [
+      {'name': 'Dana', 'image': 'assets/dana_logo.jpg'},
+      {'name': 'OVO', 'image': 'assets/ovo_logo.jpg'},
+      {'name': 'Doku', 'image': 'assets/dana_logo.jpg'},
+    ],
+    'Bank Transfer': [
+      {'name': 'BRI', 'image': 'assets/bri_logo.png'},
+      {'name': 'BCA', 'image': 'assets/bca_logo.png'},
+      {'name': 'Mandiri', 'image': 'assets/mandiri_logo.png'},
+    ],
   };
 
   @override
@@ -71,7 +80,11 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Transaction'),
+          title: Text(
+            'Confirm Transaction',
+            style:
+                TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,18 +99,37 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
                   'Total Price: ${currencyFormatter.format(widget.ticket.price * _selectedNumberOfPeople)}'),
               Text('Payment Method: $_selectedPaymentMethod'),
               if (_selectedPaymentOption != null)
-                Text('Payment Option: $_selectedPaymentOption'),
+                Row(
+                  children: [
+                    Image.asset(
+                      _selectedPaymentOptionImage!,
+                      width: MediaQuery.of(context).size.width * 0.05,
+                      height: MediaQuery.of(context).size.width * 0.05,
+                      fit: BoxFit.cover,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(_selectedPaymentOption!),
+                  ],
+                ),
             ],
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width * 0.04),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Confirm'),
+              child: Text(
+                'Confirm',
+                style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width * 0.04),
+              ),
               onPressed: () {
                 DateTime paymentDeadline =
                     DateTime.now().add(const Duration(minutes: 30));
@@ -188,176 +220,235 @@ class _BusTicketDetailPageState extends State<BusTicketDetailPage> {
   Widget build(BuildContext context) {
     final NumberFormat currencyFormatter =
         NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: color2,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Ticket Details',
-          style: TextStyle(color: Colors.white),
+        appBar: AppBar(
+          title: const Text('Bus Ticket Booking'),
+          backgroundColor: color1,
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Text(
-                  widget.ticket.from,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold, color: color2),
-                ),
-                const Icon(Icons.arrow_right),
-                Text(
-                  widget.ticket.to,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold, color: color2),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Depart Date:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            GestureDetector(
-              onTap: _showDatePicker,
-              child: AbsorbPointer(
-                child: TextFormField(
-                  controller: _dateController,
-                  decoration: const InputDecoration(
-                    labelText: 'Departure Date',
-                    border: OutlineInputBorder(),
+        body: Padding(
+          padding: EdgeInsets.all(screenWidth * 0.04),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Date:',
+                style: TextStyle(
+                    fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
+              ),
+              GestureDetector(
+                onTap: _showDatePicker,
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _dateController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Select Date',
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Depart Time:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            DropdownButtonFormField<String>(
-              value: _selectedDepartureTime,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              SizedBox(height: screenHeight * 0.02),
+              Text(
+                'Select Departure Time:',
+                style: TextStyle(
+                    fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
               ),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedDepartureTime = newValue;
-                });
-              },
-              items: widget.ticket.departTime
-                  .map((time) => DropdownMenuItem<String>(
-                        value: time,
-                        child: Text(time),
-                      ))
-                  .toList(),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Number of People:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            DropdownButtonFormField<int>(
-              value: _selectedNumberOfPeople,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedNumberOfPeople = newValue!;
-                });
-              },
-              items: List.generate(6, (index) => index + 1)
-                  .map((number) => DropdownMenuItem<int>(
-                        value: number,
-                        child: Text(number.toString()),
-                      ))
-                  .toList(),
-            ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
-              value: _selectedPaymentMethod,
-              decoration: const InputDecoration(
-                labelText: 'Payment Method',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedPaymentMethod = newValue;
-                  _selectedPaymentOption = null;
-                });
-              },
-              items: paymentOptions.keys
-                  .map((method) => DropdownMenuItem<String>(
-                        value: method,
-                        child: Text(method),
-                      ))
-                  .toList(),
-            ),
-            if (_selectedPaymentMethod != null) const SizedBox(height: 20),
-            if (_selectedPaymentMethod != null)
               DropdownButtonFormField<String>(
-                value: _selectedPaymentOption,
+                value: _selectedDepartureTime,
                 decoration: const InputDecoration(
-                  labelText: 'Payment Option',
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (newValue) {
                   setState(() {
-                    _selectedPaymentOption = newValue;
+                    _selectedDepartureTime = newValue;
                   });
                 },
-                items: paymentOptions[_selectedPaymentMethod]!
-                    .map((option) => DropdownMenuItem<String>(
-                          value: option,
-                          child: Text(option),
+                items: widget.ticket.departTime
+                    .map((time) => DropdownMenuItem<String>(
+                          value: time,
+                          child: Text(time),
                         ))
                     .toList(),
               ),
-            const SizedBox(height: 20),
-            Text(
-              'Total Price:${currencyFormatter.format(widget.ticket.price * _selectedNumberOfPeople)}',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                if (_selectedDate != null &&
-                    _selectedDepartureTime != null &&
-                    _selectedPaymentMethod != null &&
-                    (_selectedPaymentOption != null ||
-                        _selectedPaymentMethod == 'E-Wallet' ||
-                        _selectedPaymentMethod == 'Bank Transfer')) {
-                  {
-                    _showConfirmationDialog();
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Please select all required fields.'),
-                  ));
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: color2,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 18),
+              SizedBox(height: screenHeight * 0.02),
+              Text(
+                'Number of People:',
+                style: TextStyle(
+                    fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
               ),
-              child: const Text(
-                'Book Ticket',
-                style: TextStyle(color: Colors.white),
+              DropdownButtonFormField<int>(
+                value: _selectedNumberOfPeople,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedNumberOfPeople = newValue!;
+                  });
+                },
+                items: List.generate(6, (index) => index + 1)
+                    .map((number) => DropdownMenuItem<int>(
+                          value: number,
+                          child: Text(number.toString()),
+                        ))
+                    .toList(),
               ),
-            ),
-          ],
+              SizedBox(height: screenHeight * 0.02),
+              Text(
+                'Payment Method:',
+                style: TextStyle(
+                    fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
+              ),
+              DropdownButtonFormField<String>(
+                value: _selectedPaymentMethod,
+                decoration: const InputDecoration(
+                  labelText: 'Payment Method',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedPaymentMethod = newValue;
+                    _selectedPaymentOption = null;
+                    _selectedPaymentOptionImage = null;
+                  });
+                },
+                items: paymentOptions.keys
+                    .map((method) => DropdownMenuItem<String>(
+                          value: method,
+                          child: Text(method),
+                        ))
+                    .toList(),
+              ),
+              if (_selectedPaymentMethod != null)
+                SizedBox(height: screenHeight * 0.02),
+              if (_selectedPaymentMethod != null)
+                DropdownButtonFormField<String>(
+                  value: _selectedPaymentOption,
+                  decoration: const InputDecoration(
+                    labelText: 'Payment Option',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedPaymentOption = newValue;
+                      _selectedPaymentOptionImage =
+                          paymentOptions[_selectedPaymentMethod!]!.firstWhere(
+                              (option) => option['name'] == newValue)['image'];
+                    });
+                  },
+                  items: paymentOptions[_selectedPaymentMethod!]!
+                      .map((option) => DropdownMenuItem<String>(
+                            value: option['name'],
+                            child: PaymentOptionWidget(
+                              name: option['name']!,
+                              imagePath: option['image']!,
+                            ),
+                          ))
+                      .toList(),
+                ),
+              SizedBox(height: screenHeight * 0.02),
+            ],
+          ),
         ),
-      ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.all(screenWidth * 0.03),
+          decoration: const BoxDecoration(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                currencyFormatter
+                    .format(widget.ticket.price * _selectedNumberOfPeople),
+                style: TextStyle(
+                    fontSize: screenWidth * 0.045,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_selectedDate != null &&
+                      _selectedDepartureTime != null &&
+                      _selectedPaymentMethod != null &&
+                      (_selectedPaymentOption != null ||
+                          _selectedPaymentMethod == 'E-Wallet' ||
+                          _selectedPaymentMethod == 'Bank Transfer')) {
+                    _showConfirmationDialog();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Please select all required fields.'),
+                    ));
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color2,
+                  padding: EdgeInsets.symmetric(
+                      vertical: screenHeight * 0.02,
+                      horizontal: screenHeight * 0.05),
+                  textStyle: TextStyle(fontSize: screenWidth * 0.045),
+                ),
+                child: const Text(
+                  'Book Ticket',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+}
+
+class PaymentOptionWidget extends StatelessWidget {
+  final String name;
+  final String imagePath;
+
+  const PaymentOptionWidget(
+      {super.key, required this.name, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Image.asset(
+          imagePath,
+          width: 30,
+          height: 30,
+          fit: BoxFit.fill,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          name,
+          style: const TextStyle(fontSize: 16),
+        ),
+      ],
+    );
+  }
+}
+
+class PaymentMethodWidget extends StatelessWidget {
+  final String name;
+  final IconData icon;
+
+  const PaymentMethodWidget(
+      {super.key, required this.name, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 40,
+          color: Colors.black,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          name,
+          style: const TextStyle(fontSize: 16),
+        ),
+      ],
     );
   }
 }

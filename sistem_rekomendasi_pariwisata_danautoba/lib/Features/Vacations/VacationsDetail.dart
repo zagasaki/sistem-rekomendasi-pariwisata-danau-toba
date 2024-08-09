@@ -99,12 +99,18 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
                         color: Color.fromARGB(255, 0, 208, 255),
                       ),
                       const SizedBox(width: 4.0),
-                      Text(
-                        widget.destination.location,
-                        style: const TextStyle(color: color1),
+                      Flexible(
+                        child: Text(
+                          widget.destination.location,
+                          maxLines: null,
+                          style: const TextStyle(color: color1),
+                        ),
                       ),
                       const SizedBox(width: 16.0),
                     ],
+                  ),
+                  const SizedBox(
+                    height: 5,
                   ),
                   InkWell(
                       onTap: () {

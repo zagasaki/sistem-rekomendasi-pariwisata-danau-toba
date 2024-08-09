@@ -42,11 +42,11 @@ class Hotel {
   final String imageUrl;
   final List<String> imageUrls;
   final int price;
-  final String address;
+  final List<String> address;
   final String contact;
   final int rating;
   final List<String> facilities;
-  final List<String> tags; // Tambahkan properti tags
+  final List<String> tags;
 
   Hotel({
     required this.id,
@@ -58,7 +58,7 @@ class Hotel {
     required this.contact,
     required this.rating,
     required this.facilities,
-    required this.tags, // Inisialisasi tags
+    required this.tags,
   });
 
   Map<String, dynamic> toMap() {
@@ -81,7 +81,7 @@ class Hotel {
         imageUrl = doc.data()?['imageUrl'] ?? '',
         imageUrls = List<String>.from(doc.data()?['imageUrls'] ?? []),
         price = doc.data()?['price'] ?? 0,
-        address = doc.data()?['address'] ?? '',
+        address = List<String>.from(doc.data()?['address'] ?? []),
         contact = doc.data()?['contact'] ?? '',
         rating = doc.data()?['rating'] ?? 0,
         facilities = List<String>.from(doc.data()?['facilities'] ?? []),

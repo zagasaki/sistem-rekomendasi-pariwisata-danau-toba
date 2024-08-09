@@ -83,7 +83,7 @@ class _DestinationRecommendationPageState
         centerTitle: true,
         backgroundColor: color2,
         title: const Text(
-          'Rekomendasi Destinasi',
+          'Destination Recomendation',
           style: TextStyle(color: Colors.white),
         ),
       ),

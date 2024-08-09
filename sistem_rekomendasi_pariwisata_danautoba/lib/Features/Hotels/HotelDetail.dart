@@ -173,7 +173,11 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                               top: 16,
                               left: 16,
                               child: IconButton(
-                                icon: const Icon(Icons.arrow_back),
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
@@ -217,7 +221,10 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(widget.hotel.address),
+                  Text(
+                    widget.hotel.address.join(', '),
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   const SizedBox(height: 8),
                   Text('Email: ${widget.hotel.contact}'),
                   const SizedBox(height: 16),

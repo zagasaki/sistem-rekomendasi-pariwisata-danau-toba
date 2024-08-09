@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryDetail.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryModel.dart';
@@ -17,6 +18,41 @@ class _HistoryPageState extends State<HistoryPage> {
   String selectedType = 'All';
 
   @override
+  void initState() {
+    super.initState();
+    _checkAndRemoveExpiredPayments();
+  }
+
+  void _checkAndRemoveExpiredPayments() {
+    final userId = context.read<UserProvider>().uid;
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('history')
+        .where('pay', isEqualTo: false)
+        .snapshots()
+        .listen((snapshot) {
+      for (var doc in snapshot.docs) {
+        final historyItem = HistoryItem.fromFirestore(doc);
+        if (historyItem.paymentDeadline.isBefore(DateTime.now())) {
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .collection('history')
+              .doc(doc.id)
+              .delete();
+          Fluttertoast.showToast(
+            msg: 'Deadline exceeded. Booking has been canceled.',
+            gravity: ToastGravity.TOP,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
+        }
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final userId = context.read<UserProvider>().uid;
 
@@ -29,6 +65,60 @@ class _HistoryPageState extends State<HistoryPage> {
       ),
       body: Column(
         children: [
+          StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .collection('history')
+                .where('pay', isEqualTo: false)
+                .snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Container();
+              }
+
+              var expiredPayments = snapshot.data!.docs;
+
+              return Container(
+                padding: const EdgeInsets.all(8.0),
+                color: Colors.red.shade100,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Waiting for Payments',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    ...expiredPayments.map((document) {
+                      try {
+                        HistoryItem historyItem =
+                            HistoryItem.fromFirestore(document);
+                        return CustomCard(historyItem: historyItem);
+                      } catch (e) {
+                        return ListTile(
+                          title: Text('Error loading item: ${document.id}'),
+                          subtitle: Text('$e'),
+                        );
+                      }
+                    }),
+                  ],
+                ),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(

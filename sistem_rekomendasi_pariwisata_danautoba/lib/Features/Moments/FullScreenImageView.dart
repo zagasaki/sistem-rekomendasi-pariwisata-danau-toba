@@ -15,6 +15,10 @@ class FullScreenImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: PhotoViewGallery.builder(
         itemCount: imageUrls.length,
         builder: (context, index) {

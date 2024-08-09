@@ -24,7 +24,6 @@ class _KulinerReviewState extends State<KulinerReview> {
     if (filter == 'Terbaru') {
       query = query.orderBy('tanggal', descending: true);
     } else {
-      // Filter berdasarkan rating
       int rating = int.parse(filter);
       query = query.where('rating', isEqualTo: rating);
     }
@@ -45,6 +44,14 @@ class _KulinerReviewState extends State<KulinerReview> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final fontSizeSubTitle = screenWidth * 0.04;
+    final padding = screenWidth * 0.04;
+    final margin = screenWidth * 0.04;
+    final iconSize = screenWidth * 0.05;
+    final avatarRadius = screenWidth * 0.08;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Semua Ulasan'),
@@ -118,13 +125,13 @@ class _KulinerReviewState extends State<KulinerReview> {
                   String profilephoto = userData['profilephoto'] ?? '';
 
                   return Card(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
+                    margin: EdgeInsets.symmetric(
+                        vertical: margin / 2, horizontal: margin),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 16.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: padding / 2, horizontal: padding),
                       leading: CircleAvatar(
-                        radius: 30,
+                        radius: avatarRadius,
                         backgroundImage:
                             NetworkImage(profilephoto), // Display profile photo
                       ),
@@ -133,12 +140,17 @@ class _KulinerReviewState extends State<KulinerReview> {
                           Expanded(
                             child: Text(
                               username,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: fontSizeSubTitle),
                             ),
                           ),
-                          const Icon(Icons.star, color: Colors.yellow),
-                          Text('${review.rating}'),
+                          Icon(Icons.star,
+                              color: Colors.yellow, size: iconSize),
+                          Text(
+                            '${review.rating}',
+                            style: TextStyle(fontSize: fontSizeSubTitle),
+                          ),
                         ],
                       ),
                       subtitle: Column(
@@ -146,12 +158,16 @@ class _KulinerReviewState extends State<KulinerReview> {
                         children: [
                           Text(
                             review.deskripsi,
-                            style: const TextStyle(color: Colors.black),
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: fontSizeSubTitle * 0.8),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: padding / 4),
                           Text(
                             DateFormat('dd-MM-yyyy').format(review.tanggal),
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: fontSizeSubTitle * 0.7),
                           ),
                         ],
                       ),

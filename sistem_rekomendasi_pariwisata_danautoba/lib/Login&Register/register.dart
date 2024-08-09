@@ -76,7 +76,7 @@ class _RegisterState extends State<Register> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/login.jpg'),
+              image: AssetImage('assets/laketoba.jpg'),
               fit: BoxFit.fill,
             ),
           ),
@@ -110,14 +110,12 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(1),
+                                fillColor: Colors.grey.withOpacity(0.5),
                                 hintText: "Username",
                                 border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                                 enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.green),
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                               ),
@@ -146,14 +144,12 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(1),
+                                fillColor: Colors.grey.withOpacity(0.5),
                                 hintText: "Email",
                                 border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                                 enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.green),
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                               ),
@@ -182,14 +178,12 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(1),
+                                fillColor: Colors.grey.withOpacity(0.5),
                                 hintText: "No Hp",
                                 border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                                 enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.green),
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                               ),
@@ -219,14 +213,12 @@ class _RegisterState extends State<Register> {
                                 contentPadding:
                                     const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 filled: true,
-                                fillColor: Colors.grey.withOpacity(1),
+                                fillColor: Colors.grey.withOpacity(0.5),
                                 hintText: "Min.8 Charactere",
                                 border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                                 enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.green),
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10))),
                               ),

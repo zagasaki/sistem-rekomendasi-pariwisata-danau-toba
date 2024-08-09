@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
@@ -222,6 +223,12 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  final List<String> imgList = [
+    'assets/homeslider/slider1.png',
+    'assets/homeslider/slider2.png',
+    'assets/homeslider/slider3.png',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final user = context.read<UserProvider>();
@@ -236,13 +243,28 @@ class _HomePageState extends State<HomePage>
           children: [
             Stack(
               children: [
-                Container(
-                  height: screenSize.height * 0.55,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/homeimage.png'),
-                      fit: BoxFit.fill,
-                    ),
+                CarouselSlider.builder(
+                  itemCount: imgList.length,
+                  itemBuilder: (context, index, realIndex) {
+                    final imgUrl = imgList[index];
+                    return Container(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(5.0),
+                        child: Image.asset(
+                          imgUrl,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  },
+                  options: CarouselOptions(
+                    height: screenSize.height * 0.5,
+                    autoPlay: true,
+                    autoPlayInterval: const Duration(seconds: 3),
+                    autoPlayAnimationDuration:
+                        const Duration(milliseconds: 800),
+                    viewportFraction: 1.0,
+                    enlargeCenterPage: true,
                   ),
                 ),
                 Positioned(

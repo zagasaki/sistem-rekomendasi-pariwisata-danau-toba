@@ -5,7 +5,7 @@ import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'KulinerModel.dart';
 import 'KulinerPayment.dart';
-import 'kulinerReview.dart'; // Adjust the import path if necessary
+import 'kulinerReview.dart';
 
 class KulinerDetail extends StatelessWidget {
   final KulinerModel kuliner;
@@ -40,15 +40,24 @@ class KulinerDetail extends StatelessWidget {
     final NumberFormat currencyFormatter =
         NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double fontSizeTitle = screenWidth * 0.05;
+    final double fontSizePrice = screenWidth * 0.05;
+    final double iconSize = screenWidth * 0.05;
+    final double padding = screenWidth * 0.04;
+    final double spacing = screenHeight * 0.02;
+    final double reviewCardWidth = screenWidth * 0.85;
+
     Widget buildReviewCard(Review review) {
       return FutureBuilder<DocumentSnapshot>(
         future: _getUserSnapshot(review.uid),
         builder: (context, userSnapshot) {
           if (userSnapshot.connectionState == ConnectionState.waiting) {
-            return const CircleAvatar(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (userSnapshot.hasError || !userSnapshot.hasData) {
-            return const CircleAvatar(child: Icon(Icons.error));
+            return const Center(child: Icon(Icons.error));
           }
 
           final userData = userSnapshot.data!.data() as Map<String, dynamic>;
@@ -56,11 +65,11 @@ class KulinerDetail extends StatelessWidget {
           final username = userData['username'] ?? 'Anonymous';
 
           return Container(
-            width: 300,
-            margin: const EdgeInsets.symmetric(horizontal: 8.0),
+            width: reviewCardWidth,
+            margin: EdgeInsets.symmetric(horizontal: padding),
             decoration: BoxDecoration(
               color: Colors.grey[200],
-              borderRadius: const BorderRadius.all(Radius.circular(20)),
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
             ),
             child: ListTile(
               leading: CircleAvatar(
@@ -74,28 +83,30 @@ class KulinerDetail extends StatelessWidget {
                       Expanded(
                         child: Text(
                           username,
-                          style: const TextStyle(
-                              fontSize: 17,
+                          style: TextStyle(
+                              fontSize: fontSizeTitle * 0.9,
                               color: Colors.black,
                               fontWeight: FontWeight.w900),
                         ),
                       ),
-                      const Icon(Icons.star, color: Colors.yellow),
+                      Icon(Icons.star, color: Colors.yellow, size: iconSize),
                       Text(
                         '${review.rating}',
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: fontSizeTitle * 0.8),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: spacing * 0.5),
                   Text(
                     review.deskripsi,
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                    style: TextStyle(
+                        fontSize: fontSizeTitle * 0.8, color: Colors.black),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: spacing * 0.5),
                   Text(
                     DateFormat('dd-MM-yyyy').format(review.tanggal),
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(
+                        fontSize: fontSizeTitle * 0.7, color: Colors.black54),
                   ),
                 ],
               ),
@@ -112,28 +123,31 @@ class KulinerDetail extends StatelessWidget {
         backgroundColor: color2,
         title: Text(
           kuliner.name,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: MediaQuery.of(context).size.width * 0.05),
         ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Image.network(
                 kuliner.imageUrl,
                 width: double.infinity,
-                height: 200,
+                height: screenHeight * 0.25,
                 fit: BoxFit.cover,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: spacing),
               Row(
                 children: [
                   Text(
+                    maxLines: 2,
                     kuliner.name,
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: fontSizeTitle,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -143,34 +157,34 @@ class KulinerDetail extends StatelessWidget {
                       return Icon(
                         index < kuliner.rating ? Icons.star : Icons.star_border,
                         color: Colors.amber,
-                        size: 20,
+                        size: iconSize,
                       );
                     }),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: spacing * 0.5),
               Text(
                 currencyFormatter.format(kuliner.price),
-                style: const TextStyle(
-                    fontSize: 18,
+                style: TextStyle(
+                    fontSize: fontSizePrice,
                     color: Colors.black,
                     fontWeight: FontWeight.w700),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: spacing),
               InkWell(
                 onTap: _openGoogleMaps,
                 child: Container(
-                  width: 150,
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
+                  padding: EdgeInsets.all(padding),
+                  decoration: BoxDecoration(
                       color: Colors.grey,
-                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                      borderRadius: BorderRadius.circular(20)),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(width: 6),
-                      Image.asset("assets/googlemaps_logo.png", height: 20),
-                      const SizedBox(width: 7),
+                      Image.asset("assets/googlemaps_logo.png",
+                          height: iconSize),
+                      SizedBox(width: spacing),
                       const Text(
                         "Open on Maps",
                         style: TextStyle(color: Colors.white),
@@ -179,16 +193,18 @@ class KulinerDetail extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: spacing),
               Text(
                 kuliner.deskripsi,
-                style: const TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: fontSizeTitle * 0.8),
               ),
-              const Text(
+              SizedBox(height: spacing),
+              Text(
                 'Recent Review:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: fontSizeTitle, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: spacing * 0.5),
               StreamBuilder<List<Review>>(
                 stream: _reviewsStream(kuliner.id),
                 builder: (context, snapshot) {
@@ -206,7 +222,7 @@ class KulinerDetail extends StatelessWidget {
                       snapshot.data!.reversed.take(5).toList();
 
                   return SizedBox(
-                    height: 200,
+                    height: screenHeight * 0.25,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: latestReviews.length,
@@ -217,7 +233,7 @@ class KulinerDetail extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -228,9 +244,12 @@ class KulinerDetail extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('See all review'),
+                child: Text(
+                  'See all review',
+                  style: TextStyle(fontSize: fontSizeTitle * 0.8),
+                ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: spacing),
             ],
           ),
         ),
@@ -248,10 +267,12 @@ class KulinerDetail extends StatelessWidget {
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: color2,
+            padding: EdgeInsets.symmetric(vertical: padding * 0.8),
           ),
-          child: const Text(
+          child: Text(
             'Proceed to Payment',
-            style: TextStyle(color: Colors.white),
+            style:
+                TextStyle(fontSize: fontSizeTitle * 0.9, color: Colors.white),
           ),
         ),
       ),

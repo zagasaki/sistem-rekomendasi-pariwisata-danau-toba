@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "287021798913",
+    "firebase_url": "https://sistemrekomendasipariwisatadt-default-rtdb.firebaseio.com",
     "project_id": "sistemrekomendasipariwisatadt",
     "storage_bucket": "sistemrekomendasipariwisatadt.appspot.com"
   },
@@ -12,7 +13,28 @@
           "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "287021798913-7kmd7d36rmqrc366f86otuaglcbd3dv3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba",
+            "certificate_hash": "c96031da3fae69ba2bfafae6d9b4466bcc3dbfd6"
+          }
+        },
+        {
+          "client_id": "287021798913-7rm3l62apmo7v20dt03laj4mf2e5apip.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba",
+            "certificate_hash": "a789e505c817a122ea906ea6eaa3d48b3a30ab18"
+          }
+        },
+        {
+          "client_id": "287021798913-8sl2i8otp5b96h5hjino2tfh4tqa400q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBrum-HNoxnGbrGblwobsBUKDfaW7kGuAw"
@@ -20,7 +42,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "287021798913-8sl2i8otp5b96h5hjino2tfh4tqa400q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

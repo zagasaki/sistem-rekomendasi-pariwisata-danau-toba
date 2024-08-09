@@ -30,7 +30,7 @@ class KulinerModel {
         price: data['price'] ?? 0,
         rating: data['rating'] ?? 0,
         deskripsi: data['deskripsi'] ?? 'no desc',
-        gmaps: data['gmaps'] ?? 'https://maps.app.goo.gl/iEm6kGDbzT3jy1vj7',
+        gmaps: data['gmaps'] ?? 'https://maps.app.goo.gl/feXxyRyVYjXYrbJBA',
         tags: List<String>.from(data['tags'] ?? ['']));
   }
 }

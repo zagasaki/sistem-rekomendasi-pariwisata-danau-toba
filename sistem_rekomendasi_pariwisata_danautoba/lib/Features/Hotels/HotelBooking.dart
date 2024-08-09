@@ -295,7 +295,7 @@ class _BookingPageState extends State<BookingPage> {
                   ],
                 ),
               ),
-              SizedBox(height: screenWidth * 0.04), // 4% of screen width
+              SizedBox(height: screenWidth * 0.04),
               Row(
                 children: [
                   Column(
@@ -303,20 +303,18 @@ class _BookingPageState extends State<BookingPage> {
                       Text(
                         'Check-in:',
                         style: TextStyle(
-                          fontSize: screenWidth * 0.05, // 5% of screen width
+                          fontSize: screenWidth * 0.05,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(
-                          height: screenWidth * 0.02), // 2% of screen width
+                      SizedBox(height: screenWidth * 0.02),
                       ElevatedButton(
                         onPressed: () =>
                             _selectDate(context, _selectCheckInDate),
                         child: Text(
                             DateFormat('dd MMMM yyyy').format(_checkInDate)),
                       ),
-                      SizedBox(
-                          height: screenWidth * 0.04), // 4% of screen width
+                      SizedBox(height: screenWidth * 0.04),
                     ],
                   ),
                   const Icon(Icons.keyboard_double_arrow_right_rounded),
@@ -325,25 +323,22 @@ class _BookingPageState extends State<BookingPage> {
                       Text(
                         'Check-out:',
                         style: TextStyle(
-                          fontSize: screenWidth * 0.05, // 5% of screen width
+                          fontSize: screenWidth * 0.05,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(
-                          height: screenWidth * 0.02), // 2% of screen width
+                      SizedBox(height: screenWidth * 0.02),
                       ElevatedButton(
                         onPressed: () =>
                             _selectDate(context, _selectCheckOutDate),
                         child: Text(
                             DateFormat('dd MMMM yyyy').format(_checkOutDate)),
                       ),
-                      SizedBox(
-                          height: screenWidth * 0.04), // 4% of screen width
+                      SizedBox(height: screenWidth * 0.04),
                     ],
                   )
                 ],
               ),
-
               Text(
                 'Metode Pembayaran:',
                 style: TextStyle(
@@ -383,7 +378,7 @@ class _BookingPageState extends State<BookingPage> {
                     child: Row(
                       children: [
                         Icon(icon, color: Colors.grey),
-                        const SizedBox(width: 10),
+                        SizedBox(width: screenWidth * 0.03),
                         Text(value),
                       ],
                     ),
@@ -394,15 +389,15 @@ class _BookingPageState extends State<BookingPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    SizedBox(height: screenWidth * 0.02),
                     Text(
                       'Bank Tujuan:',
                       style: TextStyle(
-                        fontSize: screenWidth * 0.04, // 4% of screen width
+                        fontSize: screenWidth * 0.04,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    SizedBox(height: screenWidth * 0.02),
                     DropdownButtonFormField<String>(
                       value: _selectedBank,
                       onChanged: (value) {
@@ -447,15 +442,15 @@ class _BookingPageState extends State<BookingPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    SizedBox(height: screenWidth * 0.02),
                     Text(
                       'E-Wallet:',
                       style: TextStyle(
-                        fontSize: screenWidth * 0.04, // 4% of screen width
+                        fontSize: screenWidth * 0.04,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    SizedBox(height: screenWidth * 0.02),
                     DropdownButtonFormField<String>(
                       value: _selectedEwallet,
                       onChanged: (value) {
@@ -500,15 +495,15 @@ class _BookingPageState extends State<BookingPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    SizedBox(height: screenWidth * 0.02),
                     Text(
                       'Nomor Kartu Kredit:',
                       style: TextStyle(
-                        fontSize: screenWidth * 0.04, // 4% of screen width
+                        fontSize: screenWidth * 0.04,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: screenWidth * 0.02), // 2% of screen width
+                    SizedBox(height: screenWidth * 0.02),
                     TextFormField(
                       onChanged: (value) {
                         setState(() {
@@ -523,48 +518,46 @@ class _BookingPageState extends State<BookingPage> {
                     ),
                   ],
                 ),
-              SizedBox(height: screenWidth * 0.04), // 4% of screen width
+              SizedBox(height: screenWidth * 0.04),
             ],
           ),
         ),
       ),
       bottomNavigationBar: Container(
-        height: 70,
-        padding: EdgeInsets.symmetric(
-            horizontal: screenWidth * 0.08), // 8% of screen width
-        decoration: const BoxDecoration(color: Colors.white),
+        height: mediaQuery.size.height * 0.06,
+        decoration: const BoxDecoration(boxShadow: [
+          BoxShadow(
+              blurStyle: BlurStyle.outer,
+              color: Colors.black,
+              blurRadius: 2,
+              offset: Offset(0, 0),
+              spreadRadius: 1)
+        ]),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              currencyFormatter.format(price),
-              style: TextStyle(
-                fontSize: screenWidth * 0.06, // 6% of screen width
-                fontWeight: FontWeight.bold,
-                color: color2,
+            Expanded(
+                child: Container(
+              alignment: Alignment.center,
+              child: Text(
+                currencyFormatter.format(price),
+                style: TextStyle(fontSize: screenWidth * 0.05),
               ),
-            ),
-            SizedBox(height: screenWidth * 0.04), // 4% of screen width
-            InkWell(
+            )),
+            Expanded(
+                child: InkWell(
               onTap: _confirmBooking,
               child: Container(
-                padding:
-                    EdgeInsets.all(screenWidth * 0.02), // 2% of screen width
-                alignment: Alignment.center,
                 decoration: const BoxDecoration(
                     color: color2,
                     borderRadius: BorderRadius.all(Radius.circular(20))),
-                height: screenWidth * 0.15, // 15% of screen width
+                alignment: Alignment.center,
                 child: Text(
-                  'Konfirmasi Booking',
+                  "Confirm Booking",
                   style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: screenWidth * 0.04, // 4% of screen width
-                  ),
+                      color: Colors.white, fontSize: screenWidth * 0.05),
                 ),
               ),
-            )
+            ))
           ],
         ),
       ),

@@ -1,8 +1,11 @@
+// ignore_for_file: use_build_context_synchronously, empty_catches, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelDetail.dart';
+import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/addHotelData.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
 import 'HotelModel.dart';
@@ -16,6 +19,8 @@ class HotelScreen extends StatefulWidget {
 
 class _HotelScreenState extends State<HotelScreen> {
   List<Hotel> hotels = [];
+  List<String> searchHistory = [];
+  Map<String, Hotel> hotelMap = {};
   bool isLoading = true;
   bool isFetching = false;
   bool hasMoreData = true;
@@ -27,6 +32,8 @@ class _HotelScreenState extends State<HotelScreen> {
   String latestFilterState = 'none';
   int selectedStarRating = 0;
 
+  String selectedLocationFilter = 'All';
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +42,7 @@ class _HotelScreenState extends State<HotelScreen> {
 
   Future<void> fetchHotels() async {
     FirebaseFirestore db = FirebaseFirestore.instance;
-    var collection = db.collection('hotels').orderBy('name').limit(10);
+    var collection = db.collection('hotels').orderBy('name');
 
     var data = await collection.get();
     setState(() {
@@ -47,41 +54,44 @@ class _HotelScreenState extends State<HotelScreen> {
     });
   }
 
-  Future<void> fetchMoreHotels() async {
-    if (isFetching || !hasMoreData) return;
+  // Future<void> fetchMoreHotels() async {
+  //   if (isFetching || !hasMoreData) return;
 
-    setState(() {
-      isFetching = true;
-    });
+  //   setState(() {
+  //     isFetching = true;
+  //   });
 
-    FirebaseFirestore db = FirebaseFirestore.instance;
-    var collection = db
-        .collection('hotels')
-        .orderBy('name')
-        .startAfterDocument(lastDocument!)
-        .limit(10);
+  //   FirebaseFirestore db = FirebaseFirestore.instance;
+  //   var collection = db
+  //       .collection('hotels')
+  //       .orderBy('name')
+  //       .startAfterDocument(lastDocument!)
+  //       .limit(10);
 
-    var data = await collection.get();
-    setState(() {
-      var newHotels =
-          data.docs.map((doc) => Hotel.fromDocSnapshot(doc)).toList();
-      if (newHotels.isNotEmpty) {
-        hotels.addAll(newHotels);
-        lastDocument = data.docs.last;
-      } else {
-        hasMoreData = false;
-      }
-      isFetching = false;
-    });
-  }
+  //   var data = await collection.get();
+  //   setState(() {
+  //     var newHotels =
+  //         data.docs.map((doc) => Hotel.fromDocSnapshot(doc)).toList();
+  //     if (newHotels.isNotEmpty) {
+  //       hotels.addAll(newHotels);
+  //       lastDocument = data.docs.last;
+  //     } else {
+  //       hasMoreData = false;
+  //     }
+  //     isFetching = false;
+  //   });
+  // }
 
   List<Hotel> filteredHotels(String query) {
     List<Hotel> filteredList = hotels.where((hotel) {
       final hotelNameLower = hotel.name.toLowerCase();
       final searchLower = query.toLowerCase();
-      return hotelNameLower.contains(searchLower);
+      return hotelNameLower.contains(searchLower) &&
+          (selectedLocationFilter == 'All' ||
+              hotel.address.contains(selectedLocationFilter));
     }).toList();
 
+    // Sorting logic (harga, rating, dsb)
     if (priceFilterState == 'highToLow') {
       filteredList.sort((a, b) => b.price.compareTo(a.price));
     } else if (priceFilterState == 'lowToHigh') {
@@ -130,7 +140,7 @@ class _HotelScreenState extends State<HotelScreen> {
   void selectStarRating(int rating) {
     setState(() {
       if (selectedStarRating == rating) {
-        selectedStarRating = 0; // Deselect if already selected
+        selectedStarRating = 0;
       } else {
         selectedStarRating = rating;
       }
@@ -151,8 +161,7 @@ class _HotelScreenState extends State<HotelScreen> {
         for (String tag in newTags) {
           if (!existingTags.contains(tag)) {
             if (existingTags.length >= 5) {
-              existingTags
-                  .removeAt(0); // Remove the oldest tag if limit is exceeded
+              existingTags.removeAt(0);
             }
             existingTags.add(tag);
           }
@@ -160,18 +169,13 @@ class _HotelScreenState extends State<HotelScreen> {
 
         await userDoc.set({'hoteltags': existingTags}, SetOptions(merge: true));
       } else {
-        List<String> uniqueNewTags =
-            newTags.toSet().toList(); // Remove duplicates from new tags
+        List<String> uniqueNewTags = newTags.toSet().toList();
         List<String> initialTags = uniqueNewTags.length > 5
             ? uniqueNewTags.sublist(0, 5)
             : uniqueNewTags;
         await userDoc.set({'hoteltags': initialTags});
       }
-
-      print('Tags updated successfully.');
-    } catch (e) {
-      print('Error updating tags: $e');
-    }
+    } catch (e) {}
   }
 
   @override
@@ -180,37 +184,80 @@ class _HotelScreenState extends State<HotelScreen> {
     final NumberFormat currencyFormatter =
         NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
 
+    final screenSize = MediaQuery.of(context).size;
+    final double screenWidth = screenSize.width;
+    final double screenHeight = screenSize.height;
+
+    final double horizontalPadding = screenWidth * 0.02;
+    final double verticalPadding = screenHeight * 0.01;
+    final double fontSize = screenWidth * 0.04;
+    final double iconSize = screenWidth * 0.05;
+
     return Scaffold(
+      floatingActionButton: ElevatedButton(
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const AddHotelPage()));
+          },
+          child: const Icon(Icons.add)),
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        actionsIconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.white, size: iconSize),
+        actionsIconTheme: IconThemeData(color: Colors.white, size: iconSize),
         centerTitle: true,
         backgroundColor: color2,
-        title: TextField(
-          controller: searchController,
-          decoration: const InputDecoration(
-              hintText: 'Search hotel...',
-              border: InputBorder.none,
-              hintStyle: TextStyle(color: Colors.white)),
-          onChanged: (value) {
-            setState(() {});
-          },
+        title: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search hotel...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white, fontSize: fontSize),
+                ),
+                onChanged: (value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on, color: Colors.white, size: iconSize),
+                  SizedBox(width: horizontalPadding / 2),
+                  DropdownButton<String>(
+                    value: selectedLocationFilter,
+                    icon: Icon(Icons.arrow_drop_down,
+                        color: Colors.white, size: iconSize),
+                    dropdownColor: color2,
+                    underline: const SizedBox(),
+                    items: <String>['All', 'Parapat', 'Tongging', 'Tuktuk']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value,
+                            style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) async {
+                      setState(() {
+                        selectedLocationFilter = newValue!;
+                      });
+                      await Future.delayed(const Duration(seconds: 2));
+                      await fetchHotels();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () {
-              setState(() {
-                searchController.clear();
-              });
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
-          const SizedBox(
-            height: 10,
+          SizedBox(
+            height: verticalPadding * 2,
           ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -239,113 +286,100 @@ class _HotelScreenState extends State<HotelScreen> {
             ),
           ),
           Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : NotificationListener<ScrollNotification>(
-                    onNotification: (ScrollNotification scrollInfo) {
-                      if (scrollInfo.metrics.pixels ==
-                          scrollInfo.metrics.maxScrollExtent) {
-                        fetchMoreHotels();
-                      }
-                      return true;
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7,
-                          crossAxisSpacing: 1,
-                          mainAxisSpacing: 1,
-                        ),
-                        itemCount:
-                            filteredHotels(searchController.text).length +
-                                (isFetching ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index <
-                              filteredHotels(searchController.text).length) {
-                            final hotel =
-                                filteredHotels(searchController.text)[index];
-                            return InkWell(
-                                onTap: () async {
-                                  await updateUserTags(userId!, hotel.tags);
+            child: Padding(
+              padding: EdgeInsets.all(horizontalPadding),
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.7,
+                  crossAxisSpacing: 1,
+                  mainAxisSpacing: 1,
+                ),
+                itemCount: filteredHotels(searchController.text).length +
+                    (isFetching ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index < filteredHotels(searchController.text).length) {
+                    final hotel = filteredHotels(searchController.text)[index];
+                    return InkWell(
+                      onTap: () async {
+                        await updateUserTags(userId!, hotel.tags);
 
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => HotelDetailPage(
-                                        hotel: hotel,
-                                      ),
-                                    ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HotelDetailPage(
+                              hotel: hotel,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AspectRatio(
+                              aspectRatio: 1.3,
+                              child: Image.network(
+                                hotel.imageUrl,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(horizontalPadding),
+                              child: Text(
+                                hotel.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: fontSize,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding,
+                                  vertical: verticalPadding / 2),
+                              child: Row(
+                                children: List.generate(5, (index) {
+                                  return Icon(
+                                    index < hotel.rating
+                                        ? Icons.star
+                                        : Icons.star_border,
+                                    color: Colors.amber,
+                                    size: iconSize,
                                   );
-                                },
-                                child: Card(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      AspectRatio(
-                                        aspectRatio: 1.2,
-                                        child: Image.network(
-                                          hotel.imageUrl,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          hotel.name,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0, vertical: 4.0),
-                                        child: Row(
-                                          children: List.generate(5, (index) {
-                                            return Icon(
-                                              index < hotel.rating
-                                                  ? Icons.star
-                                                  : Icons.star_border,
-                                              color: Colors.amber,
-                                              size: 20,
-                                            );
-                                          }),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0),
-                                        child: Text(
-                                          currencyFormatter.format(hotel.price),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                    ],
-                                  ),
-                                ));
-                          } else {
-                            return Center(
-                              child: isFetching
-                                  ? const CircularProgressIndicator()
-                                  : const Text('No more data'),
-                            );
-                          }
-                        },
+                                }),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding),
+                              child: Text(
+                                currencyFormatter.format(hotel.price),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  fontSize: fontSize,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  } else {
+                    return Center(
+                      child: isFetching
+                          ? const CircularProgressIndicator()
+                          : Text('No more data',
+                              style: TextStyle(fontSize: fontSize)),
+                    );
+                  }
+                },
+              ),
+            ),
           ),
         ],
       ),

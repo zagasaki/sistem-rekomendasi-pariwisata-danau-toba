@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/History/HistoryModel.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
-import 'package:intl/intl.dart';
 
 class HistoryDetail extends StatefulWidget {
   final HistoryItem historyItem;
@@ -60,7 +59,9 @@ class _HistoryDetailState extends State<HistoryDetail> {
 
   void _handleDeadlinePassed() async {
     if (!widget.historyItem.pay) {
-      await FirebaseFirestore.instance
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(context.read<UserProvider>().uid)
           .collection('history')
           .doc(widget.historyItem.id)
           .delete();
@@ -71,7 +72,6 @@ class _HistoryDetailState extends State<HistoryDetail> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
-      Navigator.pop(context);
     }
   }
 
@@ -152,19 +152,36 @@ class _HistoryDetailState extends State<HistoryDetail> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: screenSize.width * 0.05,
+          horizontal: screenSize.width * 0.03,
           vertical: screenSize.height * 0.02,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              isPendingPayment ? 'Waiting for Payment' : 'Transaction success!',
-              style: TextStyle(
-                fontSize: screenSize.width * 0.05,
-                fontWeight: FontWeight.bold,
-                color: isPendingPayment ? Colors.red : Colors.green,
-              ),
+            Row(
+              children: [
+                Text(
+                  isPendingPayment
+                      ? 'Waiting for Payment'
+                      : 'Transaction success!',
+                  style: TextStyle(
+                    fontSize: screenSize.width * 0.05,
+                    fontWeight: FontWeight.bold,
+                    color: isPendingPayment ? Colors.red : Colors.green,
+                  ),
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+                if (isPendingPayment)
+                  Text(
+                    'Time Left: ${_formatDuration(_timeLeft)}',
+                    style: TextStyle(
+                      fontSize: screenSize.width * 0.04,
+                      color: Colors.red,
+                    ),
+                  ),
+              ],
             ),
             if (showVirtualAccount)
               _buildDetailRow('Virtual Account Number',
@@ -220,22 +237,6 @@ class _HistoryDetailState extends State<HistoryDetail> {
                   widget.historyItem.totalpassanger.toString()),
             SizedBox(height: screenSize.height * 0.02),
             _buildDetailRow('Price', 'Rp${widget.historyItem.price}'),
-            if (isPendingPayment)
-              Text(
-                'Payment Deadline: ${DateFormat('yyyy-MM-dd HH:mm').format(widget.historyItem.paymentDeadline)}',
-                style: TextStyle(
-                  fontSize: screenSize.width * 0.04,
-                  color: Colors.red,
-                ),
-              ),
-            if (isPendingPayment)
-              Text(
-                'Time Left: ${_formatDuration(_timeLeft)}',
-                style: TextStyle(
-                  fontSize: screenSize.width * 0.04,
-                  color: Colors.red,
-                ),
-              ),
           ],
         ),
       ),

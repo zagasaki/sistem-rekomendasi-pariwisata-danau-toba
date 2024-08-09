@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -74,9 +73,7 @@ class _KulinerPaymentState extends State<KulinerPayment> {
                       '${_kecamatanController.text}, '
                       '${_detailBangunanController.text}, '
                       '${_noHpController.text}';
-                  setState(() {
-                    _completeAddressController.text = completeAddress;
-                  });
+                  _completeAddressController.text = completeAddress;
                 });
               },
               child: const Text('Save'),
@@ -123,6 +120,21 @@ class _KulinerPaymentState extends State<KulinerPayment> {
                 String address = _completeAddressController.text;
                 String notes = _notesController.text;
 
+                Map<String, dynamic> purchaseData = {
+                  'kulinerId': widget.kuliner.id,
+                  'kulinerName': widget.kuliner.name,
+                  'quantity': _quantity,
+                  'totalPrice': widget.kuliner.price * _quantity,
+                  'date': Timestamp.now(),
+                  'userid': context.read<UserProvider>().uid
+                };
+
+                await FirebaseFirestore.instance
+                    .collection('kuliner_log')
+                    .add(purchaseData)
+                    .then((purchaseDoc) {})
+                    .catchError((error) {});
+
                 Map<String, dynamic> historyData = {
                   'historyType': 'kuliner',
                   'date': DateFormat("dd-MM-yyyy HH:mm")
@@ -145,11 +157,8 @@ class _KulinerPaymentState extends State<KulinerPayment> {
                     .doc(user.uid)
                     .collection('history')
                     .add(historyData)
-                    .then((historyDoc) {
-                  print('Added to history: ${historyDoc.id}');
-                }).catchError((error) {
-                  print('Error adding to history: $error');
-                });
+                    .then((historyDoc) {})
+                    .catchError((error) {});
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -167,26 +176,6 @@ class _KulinerPaymentState extends State<KulinerPayment> {
     );
   }
 
-  void _buyItem() async {
-    Map<String, dynamic> purchaseData = {
-      'kulinerId': widget.kuliner.id,
-      'kulinerName': widget.kuliner.name,
-      'quantity': _quantity,
-      'totalPrice': widget.kuliner.price * _quantity,
-      'date': Timestamp.now(),
-      'userid': context.read<UserProvider>().uid
-    };
-
-    await FirebaseFirestore.instance
-        .collection('kuliner_log')
-        .add(purchaseData)
-        .then((purchaseDoc) {})
-        .catchError((error) {
-      print('Error buying item: $error');
-    });
-    Navigator.of(context).popUntil((route) => route.isFirst);
-  }
-
   String _generateVirtualAccountNumber() {
     final random = Random();
     final accountNumber =
@@ -200,144 +189,209 @@ class _KulinerPaymentState extends State<KulinerPayment> {
         NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     int totalPrice = widget.kuliner.price * _quantity;
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double fontSizeTitle = screenWidth * 0.035;
+    final double fontSizeSubTitle = screenWidth * 0.04;
+    final double iconSize = screenWidth * 0.05;
+    final double padding = screenWidth * 0.04;
+    final double spacing = screenHeight * 0.02;
+
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: color1),
-        centerTitle: true,
-        backgroundColor: color2,
-        title: const Text(
-          'Payment',
-          style: TextStyle(color: Colors.white),
+        appBar: AppBar(
+          iconTheme: const IconThemeData(color: color1),
+          centerTitle: true,
+          backgroundColor: color2,
+          title: Text(
+            'Payment',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: MediaQuery.of(context).size.width * 0.05),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _completeAddressController,
-              decoration: const InputDecoration(
-                labelText: 'Address',
-              ),
-              readOnly: true,
-              onTap: _showAddressDialog,
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Image.network(widget.kuliner.imageUrl,
-                  width: 50, height: 50, fit: BoxFit.cover),
-              title: Text(widget.kuliner.name),
-              subtitle: Text(currencyFormatter.format(widget.kuliner.price)),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove),
-                    onPressed: () {
-                      if (_quantity > 1) {
-                        setState(() {
-                          _quantity--;
-                        });
-                      }
-                    },
-                  ),
-                  Text('$_quantity'),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      setState(() {
-                        _quantity++;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Payment Method',
-              ),
-              value: _selectedPaymentMethod,
-              items: ['Transfer Bank', 'E-Wallet']
-                  .map((method) => DropdownMenuItem<String>(
-                        value: method,
-                        child: Text(method),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value!;
-                });
-              },
-            ),
-            if (_selectedPaymentMethod == 'E-Wallet')
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'E-Wallet',
-                ),
-                value: _selectedEWallet,
-                items: ['Gopay', 'Ovo', 'Dana']
-                    .map((ewallet) => DropdownMenuItem<String>(
-                          value: ewallet,
-                          child: Text(ewallet),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedEWallet = value!;
-                  });
-                },
-              ),
-            if (_selectedPaymentMethod == 'Transfer Bank')
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Transfer Bank',
-                ),
-                value: _selectedBankTransfer,
-                items: ['BCA', 'BRI', 'BNI', 'Mandiri']
-                    .map((ewallet) => DropdownMenuItem<String>(
-                          value: ewallet,
-                          child: Text(ewallet),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedBankTransfer = value!;
-                  });
-                },
-              ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: color2,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        body: Padding(
+          padding: EdgeInsets.all(padding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Total: ${currencyFormatter.format(totalPrice)}',
-                style: const TextStyle(color: Colors.white),
+              GestureDetector(
+                onTap: _showAddressDialog,
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: _completeAddressController,
+                    decoration: InputDecoration(
+                      labelText: 'Address',
+                      border: const OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: padding, horizontal: padding),
+                    ),
+                    readOnly: true,
+                    style: TextStyle(fontSize: fontSizeSubTitle),
+                    maxLines: 1,
+                  ),
+                ),
               ),
-              ElevatedButton(
-                onPressed: _confirmPurchase,
-                child: const Text('Buy'),
+              SizedBox(height: spacing),
+              ListTile(
+                leading: Image.network(widget.kuliner.imageUrl,
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    fit: BoxFit.fill),
+                title: Text(
+                  widget.kuliner.name,
+                  style: TextStyle(fontSize: fontSizeTitle),
+                ),
+                subtitle: Text(
+                  currencyFormatter.format(widget.kuliner.price),
+                  style: TextStyle(fontSize: fontSizeSubTitle),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.remove, size: iconSize),
+                      onPressed: () {
+                        if (_quantity > 1) {
+                          setState(() {
+                            _quantity--;
+                          });
+                        }
+                      },
+                    ),
+                    Text(
+                      '$_quantity',
+                      style: TextStyle(fontSize: fontSizeSubTitle),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add, size: iconSize),
+                      onPressed: () {
+                        setState(() {
+                          _quantity++;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
+              SizedBox(height: spacing),
+              TextField(
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                style: TextStyle(fontSize: fontSizeSubTitle),
+                minLines: 1,
+              ),
+              SizedBox(height: spacing),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Payment Method',
+                  border: const OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: padding, horizontal: padding),
+                ),
+                value: _selectedPaymentMethod,
+                items: ['Transfer Bank', 'E-Wallet']
+                    .map((method) => DropdownMenuItem<String>(
+                          value: method,
+                          child: Text(method,
+                              style: TextStyle(fontSize: fontSizeSubTitle)),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPaymentMethod = value!;
+                  });
+                },
+              ),
+              SizedBox(
+                height: spacing,
+              ),
+              if (_selectedPaymentMethod == 'E-Wallet')
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'E-Wallet',
+                    border: const OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: padding, horizontal: padding),
+                  ),
+                  value: _selectedEWallet,
+                  items: ['Gopay', 'Ovo', 'Dana']
+                      .map((ewallet) => DropdownMenuItem<String>(
+                            value: ewallet,
+                            child: Text(ewallet,
+                                style: TextStyle(fontSize: fontSizeSubTitle)),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedEWallet = value!;
+                    });
+                  },
+                ),
+              if (_selectedPaymentMethod == 'Transfer Bank')
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Transfer Bank',
+                    border: const OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: padding, horizontal: padding),
+                  ),
+                  value: _selectedBankTransfer,
+                  items: ['BCA', 'BRI', 'BNI', 'Mandiri']
+                      .map((bank) => DropdownMenuItem<String>(
+                            value: bank,
+                            child: Text(bank,
+                                style: TextStyle(fontSize: fontSizeSubTitle)),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedBankTransfer = value!;
+                    });
+                  },
+                ),
             ],
           ),
         ),
-      ),
-    );
+        bottomNavigationBar: Container(
+          height: screenHeight * 0.07,
+          decoration: const BoxDecoration(boxShadow: [
+            BoxShadow(
+                blurStyle: BlurStyle.outer,
+                color: Colors.black,
+                blurRadius: 3,
+                offset: Offset(0, 0),
+                spreadRadius: 1)
+          ]),
+          child: Row(
+            children: [
+              Expanded(
+                  child: Container(
+                alignment: Alignment.center,
+                child: Text(
+                  currencyFormatter.format(totalPrice),
+                  style: TextStyle(fontSize: fontSizeSubTitle),
+                ),
+              )),
+              Expanded(
+                  child: InkWell(
+                onTap: _confirmPurchase,
+                child: Container(
+                  decoration: const BoxDecoration(
+                      color: color2,
+                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Buy",
+                    style: TextStyle(
+                        color: Colors.white, fontSize: fontSizeSubTitle),
+                  ),
+                ),
+              ))
+            ],
+          ),
+        ));
   }
 }

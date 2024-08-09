@@ -92,7 +92,7 @@ class _HotelRecommendationListPageState
         centerTitle: true,
         backgroundColor: color2,
         title: const Text(
-          'Daftar Hotel Rekomendasi',
+          'Hotel Recomendation',
           style: TextStyle(color: Colors.white),
         ),
       ),
