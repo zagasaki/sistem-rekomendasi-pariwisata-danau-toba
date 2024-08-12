@@ -80,14 +80,14 @@ class _KulinerWidgetState extends State<KulinerWidget> {
     final double spacing = screenHeight * 0.01;
 
     return Scaffold(
-      floatingActionButton: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const AddKulinerPage()));
-          },
-          child: const Icon(Icons.add)),
+      // floatingActionButton: ElevatedButton(
+      //     onPressed: () {
+      //       Navigator.push(
+      //           context,
+      //           MaterialPageRoute(
+      //               builder: (context) => const AddKulinerPage()));
+      //     },
+      //     child: const Icon(Icons.add)),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: color1),
         centerTitle: true,

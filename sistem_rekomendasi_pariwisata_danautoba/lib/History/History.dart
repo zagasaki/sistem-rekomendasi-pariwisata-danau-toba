@@ -65,6 +65,7 @@ class _HistoryPageState extends State<HistoryPage> {
       ),
       body: Column(
         children: [
+          // Bagian untuk data dengan pay=false
           StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('users')
@@ -102,23 +103,28 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    ...expiredPayments.map((document) {
-                      try {
-                        HistoryItem historyItem =
-                            HistoryItem.fromFirestore(document);
-                        return CustomCard(historyItem: historyItem);
-                      } catch (e) {
-                        return ListTile(
-                          title: Text('Error loading item: ${document.id}'),
-                          subtitle: Text('$e'),
-                        );
-                      }
-                    }),
+                    SingleChildScrollView(
+                      child: Column(
+                        children: expiredPayments.map((document) {
+                          try {
+                            HistoryItem historyItem =
+                                HistoryItem.fromFirestore(document);
+                            return CustomCard(historyItem: historyItem);
+                          } catch (e) {
+                            return ListTile(
+                              title: Text('Error loading item: ${document.id}'),
+                              subtitle: Text('$e'),
+                            );
+                          }
+                        }).toList(),
+                      ),
+                    ),
                   ],
                 ),
               );
             },
           ),
+          // Filter buttons
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -172,6 +178,7 @@ class _HistoryPageState extends State<HistoryPage> {
               ],
             ),
           ),
+          // Bagian untuk data dengan pay=true
           Expanded(
             child: StreamBuilder(
               stream: FirebaseFirestore.instance
@@ -297,7 +304,7 @@ class CustomCard extends StatelessWidget {
           ),
           child: ListTile(
             leading: Icon(
-              _getIcon(historyItem.historyType),
+              getIcon(historyItem.historyType),
               color: Colors.white,
             ),
             contentPadding: EdgeInsets.symmetric(
@@ -305,14 +312,14 @@ class CustomCard extends StatelessWidget {
               vertical: screenSize.height * 0.02,
             ),
             title: Text(
-              _getTitle(historyItem),
+              getTitle(historyItem),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
             subtitle: Text(
-              _getSubtitle(historyItem),
+              getSubtitle(historyItem),
               style: const TextStyle(
                 color: Colors.white70,
               ),
@@ -342,7 +349,7 @@ class CustomCard extends StatelessWidget {
     );
   }
 
-  IconData _getIcon(String historyType) {
+  IconData getIcon(String historyType) {
     switch (historyType) {
       case 'hotel':
         return Icons.hotel;
@@ -357,7 +364,7 @@ class CustomCard extends StatelessWidget {
     }
   }
 
-  String _getTitle(HistoryItem historyItem) {
+  String getTitle(HistoryItem historyItem) {
     switch (historyItem.historyType) {
       case 'hotel':
         return historyItem.hotelName;
@@ -372,7 +379,7 @@ class CustomCard extends StatelessWidget {
     }
   }
 
-  String _getSubtitle(HistoryItem historyItem) {
+  String getSubtitle(HistoryItem historyItem) {
     switch (historyItem.historyType) {
       case 'hotel':
         return historyItem.roomType;

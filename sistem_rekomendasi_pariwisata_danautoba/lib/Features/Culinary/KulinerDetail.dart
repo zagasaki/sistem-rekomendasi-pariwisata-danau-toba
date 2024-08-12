@@ -144,24 +144,26 @@ class KulinerDetail extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    maxLines: 2,
                     kuliner.name,
                     style: TextStyle(
                       fontSize: fontSizeTitle,
                       fontWeight: FontWeight.bold,
                     ),
+                    overflow: TextOverflow
+                        .ellipsis, // This adds "..." at the end if the text is too long
+                    maxLines: 2, // Limits the text to a single line
                   ),
                   const Expanded(child: SizedBox()),
-                  Row(
-                    children: List.generate(5, (index) {
-                      return Icon(
-                        index < kuliner.rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: iconSize,
-                      );
-                    }),
-                  ),
                 ],
+              ),
+              Row(
+                children: List.generate(5, (index) {
+                  return Icon(
+                    index < kuliner.rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: iconSize,
+                  );
+                }),
               ),
               SizedBox(height: spacing * 0.5),
               Text(

@@ -21,12 +21,12 @@ class _RegisterState extends State<Register> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
-  bool isRegistering = false;
+  bool isloading = false;
 
   Future<void> _register() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      isRegistering = true;
+      isloading = true;
     });
 
     try {
@@ -62,10 +62,13 @@ class _RegisterState extends State<Register> {
           msg: error.message ?? 'Terjadi kesalahan', gravity: ToastGravity.TOP);
     } finally {
       setState(() {
-        isRegistering = false;
+        isloading = false;
       });
       await prefs.setBool('login', true);
     }
+    setState(() {
+      isloading = false;
+    });
   }
 
   @override
@@ -227,10 +230,12 @@ class _RegisterState extends State<Register> {
                         ],
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: _register,
-                      child: const Text("Register"),
-                    ),
+                    isloading
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton(
+                            onPressed: _register,
+                            child: const Text("Register"),
+                          ),
                   ],
                 ),
               ),

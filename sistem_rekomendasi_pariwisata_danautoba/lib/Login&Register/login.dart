@@ -7,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/ForgotPassword.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart'; // Sesuaikan path-nya
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart'; // Import halaman forgot password
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Login extends StatefulWidget {
@@ -22,136 +22,31 @@ class _LoginState extends State<Login> {
   late Map<String, dynamic> userData = {};
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool isloading = false;
+  final _formKey = GlobalKey<FormState>();
 
   Future<void> _login() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    final email = _emailController.text;
-    final password = _passwordController.text;
 
-    try {
-      UserCredential userCredential =
-          await firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      String uid = userCredential.user?.uid ?? "";
-      context.read<UserProvider>().setUid(uid);
-      await prefs.setString("uid", uid);
-
-      DocumentSnapshot userSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      userSnapshot.data() as Map<String, dynamic>;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
-      );
-
-      Fluttertoast.showToast(
-        msg: 'Login successful',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-    } on FirebaseAuthException catch (error) {
-      _handleFirebaseAuthError(error);
-    } catch (error) {
-      Fluttertoast.showToast(
-        msg: 'An error occurred during login: $error',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-    } finally {
-      await prefs.setBool('login', true);
-    }
-    print(prefs.get("login"));
-  }
-
-  Future<void> _loginWithGoogle() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    GoogleSignIn googleSignIn = GoogleSignIn();
-
-    try {
-      GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        return;
-      }
-      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      UserCredential userCredential =
-          await firebaseAuth.signInWithCredential(credential);
-      String uid = userCredential.user?.uid ?? "";
-      context.read<UserProvider>().setUid(uid);
-      await prefs.setString("uid", uid);
-
-      DocumentSnapshot userSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (!userSnapshot.exists) {
-        // Jika pengguna baru, simpan data pengguna ke Firestore
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'email': googleUser.email,
-          'name': googleUser.displayName,
-          'tags': ['parapat'],
-          'vacationtags': ['pemandangandanau'],
-          'phone': ''
-        });
-      }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
-      );
-
-      Fluttertoast.showToast(
-        msg: 'Login successful with Google',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-    } on FirebaseAuthException catch (error) {
-      _handleFirebaseAuthError(error);
-    } catch (error) {
-      Fluttertoast.showToast(
-        msg: 'An error occurred during Google login: $error',
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-    }
-  }
-
-  Future<void> _loginWithFacebook() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-
-    try {
-      final LoginResult result = await FacebookAuth.instance.login();
-      if (result.status == LoginStatus.success) {
-        final AccessToken accessToken = result.accessToken!;
-        AuthCredential credential =
-            FacebookAuthProvider.credential(accessToken.tokenString);
-
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        isloading = true;
+      });
+      try {
         UserCredential userCredential =
-            await firebaseAuth.signInWithCredential(credential);
+            await firebaseAuth.signInWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
         String uid = userCredential.user?.uid ?? "";
         context.read<UserProvider>().setUid(uid);
         await prefs.setString("uid", uid);
 
         DocumentSnapshot userSnapshot =
             await FirebaseFirestore.instance.collection('users').doc(uid).get();
-        if (!userSnapshot.exists) {
-          await FirebaseFirestore.instance.collection('users').doc(uid).set({
-            'email': userCredential.user?.email,
-            'name': userCredential.user?.displayName,
-          });
-        }
+        userSnapshot.data() as Map<String, dynamic>;
 
         Navigator.pushReplacement(
           context,
@@ -159,24 +54,29 @@ class _LoginState extends State<Login> {
         );
 
         Fluttertoast.showToast(
-          msg: 'Login successful with Facebook',
+          msg: 'Login successful',
           gravity: ToastGravity.TOP,
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-      } else {
+      } on FirebaseAuthException catch (error) {
+        _handleFirebaseAuthError(error);
+      } catch (error) {
         Fluttertoast.showToast(
-          msg: 'Facebook login was cancelled',
+          msg: 'An error occurred during login: $error',
           gravity: ToastGravity.TOP,
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
+      } finally {
+        await prefs.setBool('login', true);
+        setState(() {
+          isloading = false;
+        });
       }
-    } on FirebaseAuthException catch (error) {
-      _handleFirebaseAuthError(error);
-    } catch (error) {
+    } else {
       Fluttertoast.showToast(
-        msg: 'An error occurred during Facebook login: $error',
+        msg: 'Please fill in all fields correctly',
         gravity: ToastGravity.TOP,
         backgroundColor: Colors.red,
         textColor: Colors.white,
@@ -184,8 +84,123 @@ class _LoginState extends State<Login> {
     }
   }
 
+  // Future<void> _loginWithGoogle() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  //   GoogleSignIn googleSignIn = GoogleSignIn();
+
+  //   try {
+  //     GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+  //     if (googleUser == null) {
+  //       return;
+  //     }
+  //     GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+  //     AuthCredential credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+
+  //     UserCredential userCredential =
+  //         await firebaseAuth.signInWithCredential(credential);
+  //     String uid = userCredential.user?.uid ?? "";
+  //     context.read<UserProvider>().setUid(uid);
+  //     await prefs.setString("uid", uid);
+
+  //     DocumentSnapshot userSnapshot =
+  //         await FirebaseFirestore.instance.collection('users').doc(uid).get();
+  //     if (!userSnapshot.exists) {
+  //       await FirebaseFirestore.instance.collection('users').doc(uid).set({
+  //         'email': googleUser.email,
+  //         'name': googleUser.displayName,
+  //         'tags': ['parapat'],
+  //         'vacationtags': ['pemandangandanau'],
+  //         'phone': ''
+  //       });
+  //     }
+
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => const MainPage()),
+  //     );
+
+  //     Fluttertoast.showToast(
+  //       msg: 'Login successful with Google',
+  //       gravity: ToastGravity.TOP,
+  //       backgroundColor: Colors.green,
+  //       textColor: Colors.white,
+  //     );
+  //   } on FirebaseAuthException catch (error) {
+  //     _handleFirebaseAuthError(error);
+  //   } catch (error) {
+  //     Fluttertoast.showToast(
+  //       msg: 'An error occurred during Google login: $error',
+  //       gravity: ToastGravity.TOP,
+  //       backgroundColor: Colors.red,
+  //       textColor: Colors.white,
+  //     );
+  //   }
+  // }
+
+  // Future<void> _loginWithFacebook() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
+  //   try {
+  //     final LoginResult result = await FacebookAuth.instance.login();
+  //     if (result.status == LoginStatus.success) {
+  //       final AccessToken accessToken = result.accessToken!;
+  //       AuthCredential credential =
+  //           FacebookAuthProvider.credential(accessToken.tokenString);
+
+  //       UserCredential userCredential =
+  //           await firebaseAuth.signInWithCredential(credential);
+  //       String uid = userCredential.user?.uid ?? "";
+  //       context.read<UserProvider>().setUid(uid);
+  //       await prefs.setString("uid", uid);
+
+  //       DocumentSnapshot userSnapshot =
+  //           await FirebaseFirestore.instance.collection('users').doc(uid).get();
+  //       if (!userSnapshot.exists) {
+  //         await FirebaseFirestore.instance.collection('users').doc(uid).set({
+  //           'email': userCredential.user?.email,
+  //           'name': userCredential.user?.displayName,
+  //         });
+  //       }
+
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const MainPage()),
+  //       );
+
+  //       Fluttertoast.showToast(
+  //         msg: 'Login successful with Facebook',
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Colors.green,
+  //         textColor: Colors.white,
+  //       );
+  //     } else {
+  //       Fluttertoast.showToast(
+  //         msg: 'Facebook login was cancelled',
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Colors.red,
+  //         textColor: Colors.white,
+  //       );
+  //     }
+  //   } on FirebaseAuthException catch (error) {
+  //     _handleFirebaseAuthError(error);
+  //   } catch (error) {
+  //     Fluttertoast.showToast(
+  //       msg: 'An error occurred during Facebook login: $error',
+  //       gravity: ToastGravity.TOP,
+  //       backgroundColor: Colors.red,
+  //       textColor: Colors.white,
+  //     );
+  //   }
+  // }
+
   void _handleFirebaseAuthError(FirebaseAuthException error) {
     String message;
+    print('FirebaseAuthException caught: ${error.code}');
     switch (error.code) {
       case 'invalid-email':
         message = 'The email address is not valid.';
@@ -213,6 +228,7 @@ class _LoginState extends State<Login> {
       default:
         message = 'An undefined error occurred: ${error.message}';
     }
+    print('Error message: $message');
     Fluttertoast.showToast(
       msg: message,
       gravity: ToastGravity.TOP,
@@ -235,17 +251,16 @@ class _LoginState extends State<Login> {
           ),
           padding: const EdgeInsets.all(20),
           child: Form(
+            key: _formKey, // Assign the form key here
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 const SizedBox(height: 260),
-                // FORM LOGIN
                 Container(
                   padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
                   child: Column(
                     children: [
-                      // EMAIL
                       const Text(
                         "Email",
                         style: TextStyle(
@@ -284,7 +299,6 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      // PASSWORD
                       const Text("Password",
                           style: TextStyle(
                               fontWeight: FontWeight.w900,
@@ -317,11 +331,12 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // TOMBOL LOGIN
-                      ElevatedButton(
-                        onPressed: _login,
-                        child: const Text("Login"),
-                      ),
+                      isloading
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                              onPressed: _login,
+                              child: const Text("Login"),
+                            ),
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -371,6 +386,7 @@ class _LoginState extends State<Login> {
                             )),
                       ),
                       const SizedBox(height: 10),
+                      // Uncomment these lines if you want to enable social login buttons
                       // ElevatedButton.icon(
                       //   onPressed: _loginWithGoogle,
                       //   icon: Image.asset(

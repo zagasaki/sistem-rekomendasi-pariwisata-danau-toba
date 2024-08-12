@@ -38,7 +38,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) {
-        // Check if the widget is still mounted
         setState(() {
           _isLoading = false;
         });

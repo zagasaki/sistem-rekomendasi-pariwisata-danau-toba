@@ -194,12 +194,12 @@ class _HotelScreenState extends State<HotelScreen> {
     final double iconSize = screenWidth * 0.05;
 
     return Scaffold(
-      floatingActionButton: ElevatedButton(
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const AddHotelPage()));
-          },
-          child: const Icon(Icons.add)),
+      // floatingActionButton: ElevatedButton(
+      //     onPressed: () {
+      //       Navigator.push(context,
+      //           MaterialPageRoute(builder: (context) => const AddHotelPage()));
+      //     },
+      //     child: const Icon(Icons.add)),
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white, size: iconSize),
         actionsIconTheme: IconThemeData(color: Colors.white, size: iconSize),
@@ -232,8 +232,15 @@ class _HotelScreenState extends State<HotelScreen> {
                         color: Colors.white, size: iconSize),
                     dropdownColor: color2,
                     underline: const SizedBox(),
-                    items: <String>['All', 'Parapat', 'Tongging', 'Tuktuk']
-                        .map<DropdownMenuItem<String>>((String value) {
+                    items: <String>[
+                      'All',
+                      'Parapat',
+                      'Tongging',
+                      'Tuk-tuk',
+                      'Simanindo',
+                      'Ajibata',
+                      'Balige'
+                    ].map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(value,

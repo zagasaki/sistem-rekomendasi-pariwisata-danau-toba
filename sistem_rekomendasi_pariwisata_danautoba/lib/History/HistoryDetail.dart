@@ -41,6 +41,27 @@ class _HistoryDetailState extends State<HistoryDetail> {
     return doc.data()?['reviewed'] ?? false;
   }
 
+  void cancelConfirm() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text("Cancel Booking?"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("No")),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _handleDeadlinePassed();
+                    },
+                    child: const Text("Yes"))
+              ],
+            ));
+  }
+
   void _startCountdown() {
     final now = DateTime.now();
     final deadline = widget.historyItem.paymentDeadline;
@@ -243,7 +264,16 @@ class _HistoryDetailState extends State<HistoryDetail> {
       bottomNavigationBar: widget.historyItem.historyType == 'bus' ||
               isPendingPayment ||
               widget.historyItem.historyType == 'Ship'
-          ? null
+          ? isPendingPayment
+              ? ElevatedButton(
+                  onPressed: () {
+                    cancelConfirm();
+                  },
+                  style: const ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(Colors.red)),
+                  child: const Text("Cancel Booking"),
+                )
+              : const SizedBox()
           : Padding(
               padding: EdgeInsets.all(screenSize.width * 0.05),
               child: FutureBuilder<bool>(
