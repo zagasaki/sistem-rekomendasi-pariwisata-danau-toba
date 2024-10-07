@@ -7,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/ForgotPassword.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/MainPage.dart'; // Sesuaikan path-nya
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Login&Register/register.dart'; // Import halaman forgot password
-// import 'package:google_sign_in/google_sign_in.dart';
-// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
 
 class Login extends StatefulWidget {
@@ -68,6 +68,7 @@ class _LoginState extends State<Login> {
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
+        await prefs.setBool('login', false);
       } finally {
         await prefs.setBool('login', true);
         setState(() {
@@ -84,119 +85,120 @@ class _LoginState extends State<Login> {
     }
   }
 
-  // Future<void> _loginWithGoogle() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  //   GoogleSignIn googleSignIn = GoogleSignIn();
+  Future<void> _loginWithGoogle() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    GoogleSignIn googleSignIn = GoogleSignIn();
 
-  //   try {
-  //     GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-  //     if (googleUser == null) {
-  //       return;
-  //     }
-  //     GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-  //     AuthCredential credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
+    try {
+      GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        return;
+      }
+      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-  //     UserCredential userCredential =
-  //         await firebaseAuth.signInWithCredential(credential);
-  //     String uid = userCredential.user?.uid ?? "";
-  //     context.read<UserProvider>().setUid(uid);
-  //     await prefs.setString("uid", uid);
+      UserCredential userCredential =
+          await firebaseAuth.signInWithCredential(credential);
+      String uid = userCredential.user?.uid ?? "";
+      context.read<UserProvider>().setUid(uid);
+      await prefs.setString("uid", uid);
 
-  //     DocumentSnapshot userSnapshot =
-  //         await FirebaseFirestore.instance.collection('users').doc(uid).get();
-  //     if (!userSnapshot.exists) {
-  //       await FirebaseFirestore.instance.collection('users').doc(uid).set({
-  //         'email': googleUser.email,
-  //         'name': googleUser.displayName,
-  //         'tags': ['parapat'],
-  //         'vacationtags': ['pemandangandanau'],
-  //         'phone': ''
-  //       });
-  //     }
+      DocumentSnapshot userSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (!userSnapshot.exists) {
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'email': googleUser.email,
+          'username': googleUser.displayName,
+          'culinarytags': ['ikan'],
+          'hoteltags': ['parapat'],
+          'vacationtags': ['pemandangandanau'],
+          'phone': ''
+        });
+      }
 
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (context) => const MainPage()),
-  //     );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
 
-  //     Fluttertoast.showToast(
-  //       msg: 'Login successful with Google',
-  //       gravity: ToastGravity.TOP,
-  //       backgroundColor: Colors.green,
-  //       textColor: Colors.white,
-  //     );
-  //   } on FirebaseAuthException catch (error) {
-  //     _handleFirebaseAuthError(error);
-  //   } catch (error) {
-  //     Fluttertoast.showToast(
-  //       msg: 'An error occurred during Google login: $error',
-  //       gravity: ToastGravity.TOP,
-  //       backgroundColor: Colors.red,
-  //       textColor: Colors.white,
-  //     );
-  //   }
-  // }
+      Fluttertoast.showToast(
+        msg: 'Login successful with Google',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+    } on FirebaseAuthException catch (error) {
+      _handleFirebaseAuthError(error);
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: 'An error occurred during Google login: $error',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
 
-  // Future<void> _loginWithFacebook() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  Future<void> _loginWithFacebook() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
-  //   try {
-  //     final LoginResult result = await FacebookAuth.instance.login();
-  //     if (result.status == LoginStatus.success) {
-  //       final AccessToken accessToken = result.accessToken!;
-  //       AuthCredential credential =
-  //           FacebookAuthProvider.credential(accessToken.tokenString);
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+      if (result.status == LoginStatus.success) {
+        final AccessToken accessToken = result.accessToken!;
+        AuthCredential credential =
+            FacebookAuthProvider.credential(accessToken.tokenString);
 
-  //       UserCredential userCredential =
-  //           await firebaseAuth.signInWithCredential(credential);
-  //       String uid = userCredential.user?.uid ?? "";
-  //       context.read<UserProvider>().setUid(uid);
-  //       await prefs.setString("uid", uid);
+        UserCredential userCredential =
+            await firebaseAuth.signInWithCredential(credential);
+        String uid = userCredential.user?.uid ?? "";
+        context.read<UserProvider>().setUid(uid);
+        await prefs.setString("uid", uid);
 
-  //       DocumentSnapshot userSnapshot =
-  //           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-  //       if (!userSnapshot.exists) {
-  //         await FirebaseFirestore.instance.collection('users').doc(uid).set({
-  //           'email': userCredential.user?.email,
-  //           'name': userCredential.user?.displayName,
-  //         });
-  //       }
+        DocumentSnapshot userSnapshot =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        if (!userSnapshot.exists) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'email': userCredential.user?.email,
+            'name': userCredential.user?.displayName,
+          });
+        }
 
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const MainPage()),
-  //       );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainPage()),
+        );
 
-  //       Fluttertoast.showToast(
-  //         msg: 'Login successful with Facebook',
-  //         gravity: ToastGravity.TOP,
-  //         backgroundColor: Colors.green,
-  //         textColor: Colors.white,
-  //       );
-  //     } else {
-  //       Fluttertoast.showToast(
-  //         msg: 'Facebook login was cancelled',
-  //         gravity: ToastGravity.TOP,
-  //         backgroundColor: Colors.red,
-  //         textColor: Colors.white,
-  //       );
-  //     }
-  //   } on FirebaseAuthException catch (error) {
-  //     _handleFirebaseAuthError(error);
-  //   } catch (error) {
-  //     Fluttertoast.showToast(
-  //       msg: 'An error occurred during Facebook login: $error',
-  //       gravity: ToastGravity.TOP,
-  //       backgroundColor: Colors.red,
-  //       textColor: Colors.white,
-  //     );
-  //   }
-  // }
+        Fluttertoast.showToast(
+          msg: 'Login successful with Facebook',
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Facebook login was cancelled',
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } on FirebaseAuthException catch (error) {
+      _handleFirebaseAuthError(error);
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: 'An error occurred during Facebook login: $error',
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
 
   void _handleFirebaseAuthError(FirebaseAuthException error) {
     String message;
@@ -386,17 +388,16 @@ class _LoginState extends State<Login> {
                             )),
                       ),
                       const SizedBox(height: 10),
-                      // Uncomment these lines if you want to enable social login buttons
-                      // ElevatedButton.icon(
-                      //   onPressed: _loginWithGoogle,
-                      //   icon: Image.asset(
-                      //     'assets/google_logo.png',
-                      //     height: 24,
-                      //     width: 24,
-                      //   ),
-                      //   label: const Text('Login with Google'),
-                      // ),
-                      // const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _loginWithGoogle,
+                        icon: Image.asset(
+                          'assets/google_logo.png',
+                          height: 24,
+                          width: 24,
+                        ),
+                        label: const Text('Login with Google'),
+                      ),
+                      const SizedBox(height: 10),
                       // ElevatedButton.icon(
                       //   onPressed: _loginWithFacebook,
                       //   icon: Image.asset(

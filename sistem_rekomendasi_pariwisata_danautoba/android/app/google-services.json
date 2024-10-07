@@ -8,26 +8,26 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:287021798913:android:b1954a7034ed8c16535200",
+        "mobilesdk_app_id": "1:287021798913:android:96471a876c560407535200",
         "android_client_info": {
-          "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba"
+          "package_name": "com.mikroskil.sistem_rekomendasi_pariwisata_danautoba"
         }
       },
       "oauth_client": [
         {
-          "client_id": "287021798913-7kmd7d36rmqrc366f86otuaglcbd3dv3.apps.googleusercontent.com",
+          "client_id": "287021798913-bh30mq2c3i2e5t76mraajhucnk37gmg6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba",
-            "certificate_hash": "c96031da3fae69ba2bfafae6d9b4466bcc3dbfd6"
+            "package_name": "com.mikroskil.sistem_rekomendasi_pariwisata_danautoba",
+            "certificate_hash": "52d5ed2e5a9fcd9c6fdb5c011fc70d6aaacbf492"
           }
         },
         {
-          "client_id": "287021798913-7rm3l62apmo7v20dt03laj4mf2e5apip.apps.googleusercontent.com",
+          "client_id": "287021798913-nm5k5f5h2vftd276q0ekei3u5rdr2pc3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.sistem_rekomendasi_pariwisata_danautoba",
-            "certificate_hash": "a789e505c817a122ea906ea6eaa3d48b3a30ab18"
+            "package_name": "com.mikroskil.sistem_rekomendasi_pariwisata_danautoba",
+            "certificate_hash": "10db201dd89e97ac107af39782e9fde729a5c797"
           }
         },
         {

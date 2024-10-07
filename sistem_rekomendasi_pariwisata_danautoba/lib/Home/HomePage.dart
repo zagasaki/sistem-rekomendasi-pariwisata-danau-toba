@@ -285,7 +285,7 @@ class _HomePageState extends State<HomePage>
                   ),
                 ),
                 Positioned(
-                  top: screenSize.height * 0.27,
+                  top: screenSize.height * 0.25,
                   left: screenSize.width * 0.00,
                   right: screenSize.width * 0.00,
                   child: Container(

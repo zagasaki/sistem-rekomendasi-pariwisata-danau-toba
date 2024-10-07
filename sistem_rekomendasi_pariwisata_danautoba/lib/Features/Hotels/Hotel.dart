@@ -23,10 +23,9 @@ class _HotelScreenState extends State<HotelScreen> {
   Map<String, Hotel> hotelMap = {};
   bool isLoading = true;
   bool isFetching = false;
-  bool hasMoreData = true;
   TextEditingController searchController = TextEditingController();
   DocumentSnapshot? lastDocument;
-
+  List<Hotel> promoHotels = [];
   String priceFilterState = 'none';
   String ratingFilterState = 'none';
   String latestFilterState = 'none';
@@ -54,34 +53,6 @@ class _HotelScreenState extends State<HotelScreen> {
     });
   }
 
-  // Future<void> fetchMoreHotels() async {
-  //   if (isFetching || !hasMoreData) return;
-
-  //   setState(() {
-  //     isFetching = true;
-  //   });
-
-  //   FirebaseFirestore db = FirebaseFirestore.instance;
-  //   var collection = db
-  //       .collection('hotels')
-  //       .orderBy('name')
-  //       .startAfterDocument(lastDocument!)
-  //       .limit(10);
-
-  //   var data = await collection.get();
-  //   setState(() {
-  //     var newHotels =
-  //         data.docs.map((doc) => Hotel.fromDocSnapshot(doc)).toList();
-  //     if (newHotels.isNotEmpty) {
-  //       hotels.addAll(newHotels);
-  //       lastDocument = data.docs.last;
-  //     } else {
-  //       hasMoreData = false;
-  //     }
-  //     isFetching = false;
-  //   });
-  // }
-
   List<Hotel> filteredHotels(String query) {
     List<Hotel> filteredList = hotels.where((hotel) {
       final hotelNameLower = hotel.name.toLowerCase();
@@ -91,7 +62,6 @@ class _HotelScreenState extends State<HotelScreen> {
               hotel.address.contains(selectedLocationFilter));
     }).toList();
 
-    // Sorting logic (harga, rating, dsb)
     if (priceFilterState == 'highToLow') {
       filteredList.sort((a, b) => b.price.compareTo(a.price));
     } else if (priceFilterState == 'lowToHigh') {
@@ -193,13 +163,29 @@ class _HotelScreenState extends State<HotelScreen> {
     final double fontSize = screenWidth * 0.04;
     final double iconSize = screenWidth * 0.05;
 
+    final List<Map<String, String>> promoData = [
+      {
+        'image': 'assets/promo1.png',
+        'title': 'Atsari Hotel Parapat',
+        'description': 'Diskon 20% untuk booking sekarang!',
+        'date': '2024-08-14',
+      },
+      {
+        'image': 'assets/promo2.png',
+        'title': 'Labersa Hotel',
+        'description': 'Diskon 15% untuk member!',
+        'date': '2024-08-15',
+      },
+      {
+        'image': 'assets/promo3.png',
+        'title': 'Parapat View Hotel',
+        'description': 'Harga spesial untuk akhir pekan!',
+        'date': '2024-08-16',
+      },
+      // Tambahkan lebih banyak data promo jika diperlukan
+    ];
+
     return Scaffold(
-      // floatingActionButton: ElevatedButton(
-      //     onPressed: () {
-      //       Navigator.push(context,
-      //           MaterialPageRoute(builder: (context) => const AddHotelPage()));
-      //     },
-      //     child: const Icon(Icons.add)),
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white, size: iconSize),
         actionsIconTheme: IconThemeData(color: Colors.white, size: iconSize),
@@ -290,6 +276,74 @@ class _HotelScreenState extends State<HotelScreen> {
                   );
                 }),
               ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: promoData.map((promo) {
+                return Container(
+                  width: 200,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 1,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(8)),
+                        child: Image.asset(
+                          promo['image']!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 120,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          promo['title']!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          promo['description']!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Valid Until: ${promo['date']!}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ),
           Expanded(

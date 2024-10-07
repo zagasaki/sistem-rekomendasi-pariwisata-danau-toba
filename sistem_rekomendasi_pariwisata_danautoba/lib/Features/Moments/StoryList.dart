@@ -1,9 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Moments/FullScreenImageView.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Providers/UserProv.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class StoryList extends StatelessWidget {
   const StoryList({super.key});
@@ -48,6 +54,40 @@ class StoryList extends StatelessWidget {
 
   Future<DocumentSnapshot> getUserData(String uid) {
     return FirebaseFirestore.instance.collection('users').doc(uid).get();
+  }
+
+  Future<void> shareStory(BuildContext context, String caption,
+      List<String> imageUrls, String username) async {
+    try {
+      List<XFile> imageFiles = [];
+      for (String url in imageUrls) {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final tempDir = await getTemporaryDirectory();
+          final file = File('${tempDir.path}/${url.split('/').last}');
+          await file.writeAsBytes(response.bodyBytes);
+          imageFiles.add(XFile(file.path));
+        } else {
+          Fluttertoast.showToast(
+            msg: "Failed to download image: $url",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+          );
+          return;
+        }
+      }
+
+      await Share.shareXFiles(
+        imageFiles,
+        text: 'Check out this story by $username: $caption',
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Failed to share story: $e",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
   }
 
   @override
@@ -154,6 +194,14 @@ class StoryList extends StatelessWidget {
                               },
                             ),
                             Text('${likes.length} likes'),
+                            const SizedBox(width: 16.0),
+                            IconButton(
+                              icon: const Icon(Icons.share),
+                              onPressed: () {
+                                shareStory(context, story['caption'],
+                                    imageUrls.cast<String>(), username);
+                              },
+                            ),
                           ],
                         ),
                       ],
