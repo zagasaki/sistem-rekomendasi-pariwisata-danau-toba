@@ -1,7 +1,7 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Bus/Bus.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Culinary/KulinerDetail.dart';
@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage>
           children: [
             Stack(
               children: [
-                CarouselSlider.builder(
+                FlutterCarousel.builder(
                   itemCount: imgList.length,
                   itemBuilder: (context, index, realIndex) {
                     final imgUrl = imgList[index];
@@ -257,7 +257,7 @@ class _HomePageState extends State<HomePage>
                       ),
                     );
                   },
-                  options: CarouselOptions(
+                  options: FlutterCarouselOptions(
                     height: screenSize.height * 0.5,
                     autoPlay: true,
                     autoPlayInterval: const Duration(seconds: 3),

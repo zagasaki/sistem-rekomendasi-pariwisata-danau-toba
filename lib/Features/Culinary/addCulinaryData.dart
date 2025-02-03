@@ -51,6 +51,7 @@ class _AddKulinerPageState extends State<AddKulinerPage> {
         );
 
         // Reset form
+        dispose();
         _formKey.currentState!.reset();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

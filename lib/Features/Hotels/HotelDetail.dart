@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/Features/Hotels/HotelReview.dart';
 import 'package:sistem_rekomendasi_pariwisata_danautoba/style.dart';
@@ -126,8 +126,8 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           children: [
             Stack(
               children: [
-                CarouselSlider(
-                  options: CarouselOptions(
+                FlutterCarousel(
+                  options: FlutterCarouselOptions(
                     height: 200,
                     enlargeCenterPage: true,
                     enableInfiniteScroll: true,
